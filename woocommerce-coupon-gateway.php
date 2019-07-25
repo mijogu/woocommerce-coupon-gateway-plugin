@@ -12,30 +12,44 @@ License: GPLv2
 
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
-// defined( 'WCG_COOKIE_NAME' ) or define( 'WCG_COOKIE_NAME', 'wcg_code');
+defined( 'WCG_COOKIE' ) or define( 'WCG_COOKIE', 'wcg_code' );
+define( 'WCG_TESTING', false);
+
+// if ( strpos( get_site_url(), '.local') ) {
+//     define( 'WCG_TESTING', true);
+// }
+
 
 add_action('init', 'check_query_string_coupon_code', 1);
 
 function check_query_string_coupon_code() {
     global $current_user;
-    $cookie_name = 'wcg_code';
-    $coupon_code = null;
-
-    //setcookie( 'fucking_cookies' , 'how about now cookie?', time() + 31556926 );
+    $cookie_name = WCG_COOKIE;
+    $coupon_code = '';
 
     // if user is admin, allow thru to site
-    if ( in_array( 'administrator', $current_user->roles) || is_admin() || is_login_page() ) {
-        return;
-    } else if ( $_GET['wcg'] && $_GET['wcg'] != null ) {
-        $coupon_code = $_GET['wcg'];
+
+    if ( in_array( 'administrator', $current_user->roles) 
+            || is_admin() 
+            || is_login_page()
+            || $_REQUEST['wc-ajax'] ) {
+
+        output_testing_info( 'you are authorized');
+        //return;
+    } else if ( trim($_GET['wcg']) != "" ) {
+        $coupon_code = trim($_GET['wcg']);
         
         // Check if the coupon code is valid
         // If so, save the coupon code as a cookie
         wcg_check_code_validity($coupon_code);
         setcookie( $cookie_name, $coupon_code);
         
-        echo 'query string: '. $coupon_code;
-        return;
+        output_testing_info('query string has valid code: '. $coupon_code );
+        //return;
+    // } else if ( trim($_GET['wcg']) == null && !isset($_COOKIE[ $cookie_name ] ) ) {
+    //     wcg_check_code_validity($coupon_code);
+
+    //     output_testing_info('query string coupon code is empty');
     } else if ( isset($_COOKIE[ $cookie_name ] )) {
         $coupon_code = $_COOKIE[ $cookie_name ];
         
@@ -43,12 +57,13 @@ function check_query_string_coupon_code() {
         // If so, let them in
         wcg_check_code_validity($coupon_code);
  
-        echo 'valid cookie is set: ' . $coupon_code;
-        return;
+        output_testing_info( 'cookie has valid code: ' . $coupon_code);
+        //return;
     } else {
         wcg_check_code_validity($coupon_code);
-        return;
+        //return;
     }
+    //return true;
 }
 
 function is_login_page() {
@@ -72,8 +87,30 @@ function wcg_check_code_validity($coupon_code) {
     } else if ( $coupon_data['usage_count'] >= $coupon_data['usage_limit'] ) {
         echo __('The link you used has expired.', 'woocommerce-coupon-gateway');
         die();
-    }
+    }    
+}
 
-    
-    return true;
+
+function output_testing_info( $text ) {
+    if ( WCG_TESTING == true) {
+        ?>
+        <div style="color: white; background-color: #666; padding: 30px; text-align: right;">
+            <p style="margin-bottom:0;"><?php echo $text; ?></p>
+        </div>
+        <?php 
+    }
+}
+
+
+add_action( 'woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
+
+function wcg_mark_coupon_used( $order_id ) {
+    $order = new WC_Order( $order_id );
+
+    $coupon_code = $_COOKIE[ WCG_COOKIE ];
+
+    $order->apply_coupon( $coupon_code );
+    // $woocommerce->cart->add_discount( $coupon_code ); 
+
+    echo "Coupon '". $coupon_code. "' has been used!";
 }
