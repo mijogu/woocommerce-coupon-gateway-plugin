@@ -18,3 +18,14 @@ When the user checks out, the Coupon is marked as used behind the scenes (ie: us
 enter the code anywhere during checkout). Once a Coupon code has reached its usage limit, any user with
 that Coupon code stored as a cookie will only be able to view a Thank You page. 
 
+The plugin assumes that there is a Thank You page located as `example.com/thank-you`, so make sure that page is created within WordPress. 
+
+## How to Test
+
+- Install / activate plugin.
+- Create some valid Coupons in WooCommerce.
+- Open an incognito window (which saves cookies only until you close the window) and try to visit the site without being logged in -- you should get an error and should not be able to navigate the site.
+- Now try to visit the site with the query string at the end of the url, `?wcg={valid coupon code}` -- you should be able to navigate the site. 
+- Try using a nonexistent Coupon code, `?wcg=badcode` -- you should get an error. 
+- Use a valid code in the query string again and make a test purchase -- after the Order is complete, you should be directed to a thank you page and should no longer be able to navigate the site.
+- Login as an admin and confirm that the Coupon has been applied to that Order. 

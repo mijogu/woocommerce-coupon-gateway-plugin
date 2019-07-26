@@ -11,7 +11,6 @@ License: GPLv2
 */
 
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
-
 defined( 'WCG_COOKIE' ) or define( 'WCG_COOKIE', 'wcg_code' );
 define( 'WCG_TESTING', false);
 
