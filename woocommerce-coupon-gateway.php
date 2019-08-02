@@ -10,7 +10,8 @@ License: GPLv2
 */
 
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
-defined( 'WCG_COOKIE' ) or define( 'WCG_COOKIE', 'wcg_code' );
+defined( 'WCG_COOKIE_CODE' ) or define( 'WCG_COOKIE_CODE', 'wcg_code' );
+defined( 'WCG_COOKIE_NAME' ) or define( 'WCG_COOKIE_NAME', 'wcg_name' );
 define( 'WCG_TESTING', false);
 
 // if ( strpos( get_site_url(), '.local') ) {
@@ -21,12 +22,18 @@ add_action('init', 'check_query_string_coupon_code', 1);
 
 function check_query_string_coupon_code() {
     global $current_user;
-    $cookie_name = WCG_COOKIE;
+    $cookie_code = WCG_COOKIE_CODE;
+    $cookie_name = WCG_COOKIE_NAME;
+
     $coupon_code = '';
     $thank_you_page = get_thank_you_page();
 
-    // if user is admin, allow thru to site
+    $first_name = trim($_GET['fname']);
+    if ( !empty( $first_name ) ) {
+        setcookie( $cookie_name, $first_name);
+    }
 
+    // if user is admin, allow thru to site
     if ( in_array( 'administrator', $current_user->roles) 
             || is_admin() 
             || is_login_page()
@@ -41,11 +48,11 @@ function check_query_string_coupon_code() {
         // Check if the coupon code is valid
         // If so, save the coupon code as a cookie
         wcg_check_code_validity($coupon_code);
-        setcookie( $cookie_name, $coupon_code);
+        setcookie( $cookie_code, $coupon_code);
         wcg_check_page_access();
         output_testing_info('query string has valid code: '. $coupon_code );
-    } else if ( isset($_COOKIE[ $cookie_name ] )) {
-        $coupon_code = $_COOKIE[ $cookie_name ];
+    } else if ( isset($_COOKIE[ $cookie_code ] )) {
+        $coupon_code = $_COOKIE[ $cookie_code ];
         
         // Check if the coupon code is STILL valid
         // If so, let them in
@@ -82,18 +89,16 @@ function get_oops_page() {
 }
 
 function wcg_check_page_access() {
-    /*
-    if ( is_product() 
-        || is_page( 'delivery-information' ) 
-        // || is_home()
-        || is_page( '/' ) 
+    $url_parts = explode('?', $_SERVER[ REQUEST_URI ], 2);
+
+    if ( in_array( $url_parts[0], [ '/', '/delivery-information'] ) 
+        || strpos( $url_parts[0], '/product') == 0
     ) {
         return;
     } else {
         wp_redirect( site_url() );
         exit;
-    }
-    */
+    }    
     return true;
 }
 
@@ -136,7 +141,7 @@ function output_testing_info( $text ) {
 add_action( 'woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
 function wcg_mark_coupon_used( $order_id ) {
     $order = new WC_Order( $order_id );
-    $coupon_code = $_COOKIE[ WCG_COOKIE ];
+    $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
     $order->apply_coupon( $coupon_code );
     output_testing_info( "Coupon '". $coupon_code. "' has been used!" );
 }
@@ -193,7 +198,7 @@ function wcg_remove_cart_item_before_add_to_cart( $passed, $product_id, $quantit
     return $passed;
 }
 
-// After comple
+// After completed purhcase, redirect to Thank You page
 add_action( 'template_redirect', 'wcg_custom_redirect_after_purchase' );
 function wcg_custom_redirect_after_purchase() {
 	global $wp;
@@ -203,3 +208,13 @@ function wcg_custom_redirect_after_purchase() {
 		exit;
 	}
 }
+
+
+// Shortcode that displays cookie data
+function wcg_cookie( $atts ) {  
+    extract( shortcode_atts( array(
+        'cookie' => 'cookie',
+    ), $atts ) );
+    return $_COOKIE[$cookie];  
+}
+add_shortcode('wcg_cookie', 'wcg_cookie'); 
