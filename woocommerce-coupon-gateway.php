@@ -18,9 +18,12 @@ define( 'WCG_TESTING', false);
 //     define( 'WCG_TESTING', true);
 // }
 
-add_action('init', 'check_query_string_coupon_code', 1);
+//add_action('init', 'check_query_string_coupon_code', 10);
+// add_action('wp_loaded', 'check_query_string_coupon_code', 10);
+add_action('parse_request', 'check_query_string_coupon_code', 10);
 
 function check_query_string_coupon_code() {
+        
     global $current_user;
     $cookie_code = WCG_COOKIE_CODE;
     $cookie_name = WCG_COOKIE_NAME;
@@ -218,3 +221,51 @@ function wcg_cookie( $atts ) {
     return $_COOKIE[$cookie];  
 }
 add_shortcode('wcg_cookie', 'wcg_cookie'); 
+
+
+// Register custom fields with the REST API
+add_action( 'rest_api_init', 'wcg_api_fields');
+
+function wcg_api_fields() {
+    $custom_meta_fields = array(
+        'street',
+        'city',
+        'state',
+        'zip',
+        'phone',
+        'coupon_code'
+    );
+
+    foreach ( $custom_meta_fields as $field ) {
+        register_rest_field( 
+            'user', 
+            $field, 
+            array(
+                'get_callback'      => 'wcg_get_usermeta_cb',
+                'update_callback'   => 'wcg_update_usermeta_cb'
+            )
+        );
+    }
+}
+
+function wcg_get_usermeta_cb( $user, $field_name, $request ) {
+    return get_user_meta( $user['id'], $field_name, true);
+}
+function wcg_update_usermeta_cb( $value, $user, $field_name ) {
+    return update_user_meta( $user->ID, $field_name, $value );
+}
+
+
+if ( class_exists('ACF') ) {
+    
+    // Save ACF fields automatically
+    add_filter( 'acf/settings/save_json', function() {
+        return dirname(__FILE__) . '/acf-json';
+    });
+
+    // Load ACF fields automatically
+    add_filter( 'acf/settings/load_json', function( $paths ) {
+        $paths[] = dirname( __FILE__ ) . '/acf-json'; 
+        return $paths;    
+    });
+}
