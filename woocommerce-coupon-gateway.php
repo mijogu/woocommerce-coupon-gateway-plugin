@@ -9,6 +9,13 @@ Text Domain: woocommerce-coupon-gateway
 License: GPLv2
 */
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+//   PHASE 1 : COUPON CODE / COOKIES 
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 defined( 'WCG_COOKIE_CODE' ) or define( 'WCG_COOKIE_CODE', 'wcg_code' );
 defined( 'WCG_COOKIE_NAME' ) or define( 'WCG_COOKIE_NAME', 'wcg_name' );
@@ -104,6 +111,7 @@ function wcg_check_page_access() {
     }    
     return true;
 }
+
 
 function wcg_check_code_validity($coupon_code) {
     // Check to see if 'coupon_code' is a valid coupon code
@@ -223,17 +231,31 @@ function wcg_cookie( $atts ) {
 add_shortcode('wcg_cookie', 'wcg_cookie'); 
 
 
-// Register custom fields with the REST API
-add_action( 'rest_api_init', 'wcg_api_fields');
 
-function wcg_api_fields() {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+//                        PHASE 2 : API ADDITIONS 
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// Register custom fields with the REST API
+add_action( 'rest_api_init', 'wcg_api_init');
+
+function wcg_api_init() {
     $custom_meta_fields = array(
-        'street',
+        'status',
+        'first_name',
+        'last_name',
+        'address_1',
+        'address_2',
         'city',
         'state',
         'zip',
         'phone',
-        'coupon_code'
     );
 
     foreach ( $custom_meta_fields as $field ) {
@@ -246,7 +268,97 @@ function wcg_api_fields() {
             )
         );
     }
+
+    // "coupon_code" needs a specific update_callback
+    // that will create a new Coupon and assign the code to this field
+    register_rest_field(
+        'user',
+        'coupon_code',
+        array(
+            'get_callback'      => 'wcg_get_usermeta_cb',
+            'update_callback'   => 'wcg_update_coupon_code_cb'
+        )
+    );
+
+
+    // "products_viewed" needs a specific get_callback
+    // NOTE: the API will NOT UPDATE this field -- this feature should not be needed
+    register_rest_field(
+        'user',
+        'products_viewed',
+        array(
+            'get_callback'      => 'wcg_get_user_products_viewed_cb',
+            'update_callback'   => 'wcg_update_usermeta_cb'
+        )
+    );
 }
+
+// The value must be set to 'createcoupon' in order for a 
+// coupon to be generated and assigned to the user
+function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
+    if ( $value == 'createcoupon' ) {
+        $email = $user->data->user_email;
+        $value = generate_coupon( $email, $user->ID );
+    } 
+    return update_user_meta( $user->ID, $field_name, $value );
+}
+
+
+function generate_coupon( $email, $user_id ) {
+    // Generate coupon code from hashed email address
+    // This should guarantee uniqueness, since there 
+    // won't be duplicate email addresses for users. 
+    $coupon_code = hash( 'md5', $email, false ) . "*$user_id";
+    
+    // Create coupon and get ID
+    $coupon = array(
+        'post_title'    => $coupon_code,
+        'post_content'  => '',
+        'post_status'   => 'publish',
+        'post_author'   => 1, 
+        'post_type'     => 'shop_coupon'
+    );
+    $new_coupon_id = wp_insert_post( $coupon );
+
+    if ( $new_coupon_id > 0 ) {
+        
+        // Add coupon meta
+        update_post_meta( $new_coupon_id, 'discount_type', 'fixed_cart' );
+        update_post_meta( $new_coupon_id, 'coupon_amount', '100.00' );
+        update_post_meta( $new_coupon_id, 'usage_limit', 1 );
+        update_post_meta( $new_coupon_id, 'free_shipping', false );
+        // update_post_meta( $new_coupon_id, 'individual_use', false );
+        // update_post_meta( $new_coupon_id, 'product_ids', '' );
+        // update_post_meta( $new_coupon_id, 'exclude_product_ids', '' );
+        // update_post_meta( $new_coupon_id, 'expiry_date', '' );
+        // update_post_meta( $new_coupon_id, 'apply_before_tax', 'yes' );
+
+    } else {
+        $coupon_code = "ERROR_COUPON_NOT_CREATED";
+    }
+
+    return $coupon_code;
+}
+
+
+function wcg_get_user_products_viewed_cb( $user, $field_name, $request ) {
+    //$products = get_user_meta( $user['id'], $field_name, false );
+    $userId = 'user_' . $user['id'];
+    $field = get_field( $field_name, $userId );
+    $products = array();
+    if ( have_rows( $field_name, $userId ) ) {
+        while ( have_rows( $field_name, $userId ) ) {
+            the_row();
+            $products[] = array(
+                get_sub_field( "product_id"),
+                get_sub_field( "product_name"),
+                get_sub_field( "date_viewed")
+            );
+        }
+    }
+    return $products;
+}
+
 
 function wcg_get_usermeta_cb( $user, $field_name, $request ) {
     return get_user_meta( $user['id'], $field_name, true);
@@ -268,4 +380,93 @@ if ( class_exists('ACF') ) {
         $paths[] = dirname( __FILE__ ) . '/acf-json'; 
         return $paths;    
     });
+}
+
+add_action('wp', 'wcg_record_product_page_visit', 10);
+
+// Save user visit to a product page
+    // fields:
+        // product_id
+        // product_name
+        // date_viewed -- Y-m-d H:i:s
+function wcg_record_product_page_visit() {
+    global $post;
+
+    // If user views a product page, record the visit.
+    if ( is_product() ) {
+        // Only record the visit for users that have a 
+        // cookie with a coupon code. 
+        $user_id = wcg_get_customer_id_by_coupon_cookie();
+        if ( $user_id > 0 ) {
+            
+            $row = array(
+                'product_id'    => $post->ID,
+                'product_name'  => $post->post_title,
+                'date_viewed'   => current_time( 'Y-m-d H:i:s' )
+            );
+            add_row( 'products_viewed', $row, 'user_'.$user_id );
+        }
+    }
+}
+
+// Override / populate checkout fields
+// https://docs.woocommerce.com/document/tutorial-customising-checkout-fields-using-actions-and-filters/
+// https://gist.github.com/Bobz-zg/1d59f0835678c3787597121255a959d3
+add_filter('woocommerce_checkout_get_value', 'wcg_populate_checkout_fields', 10, 2 );
+
+// Our hooked in function - $fields is passed via the filter!
+function wcg_populate_checkout_fields( $input, $key ) {
+    $user_id = wcg_get_customer_id_by_coupon_cookie();
+    $user_key = 'user_' . $user_id;
+    
+    switch ($key) :
+		case 'billing_first_name':
+            return get_user_meta( $user_id, 'first_name', true );
+            break;            
+        case 'billing_last_name':
+            return get_user_meta( $user_id, 'last_name', true );
+            break;
+		case 'billing_address_1':
+            return get_user_meta( $user_id, 'address_1', true );
+            break;
+		case 'billing_address_2':
+            return get_user_meta( $user_id, 'address_2', true );
+            break;
+		case 'billing_city':
+            return get_user_meta( $user_id, 'city', true );
+            break;
+		case 'billing_state':
+            return get_user_meta( $user_id, 'state', true );
+            break;
+		case 'billing_postcode':
+            return get_user_meta( $user_id, 'zip', true );
+            break;
+		case 'billing_phone':
+            return get_user_meta( $user_id, 'phone', true );
+            break;
+		case 'billing_email':
+            $user_data = get_userdata( $user_id );
+            return $user_data->user_email;
+            break;
+	endswitch;
+    return $fields;
+}
+
+// Get the current user OBJECT by the Coupon Code cookie
+function wcg_get_customer_object_by_coupon_cookie() {
+    $user_id = wcg_get_customer_id_by_coupon_cookie();
+    if ( $user_id > 0 ) {
+        $user = get_user_by( 'ID', $user_id );
+        return $user;
+    }
+    return false;
+}
+
+// Get the current user's ID from the Coupon Code cookie
+function wcg_get_customer_id_by_coupon_cookie() {
+    if ( isset( $_COOKIE[ WCG_COOKIE_CODE ] ) ) {
+        $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
+        $user_id = substr( $coupon_code, strrpos( $coupon_code, '*') + 1 );
+        return $user_id;
+    }
 }
