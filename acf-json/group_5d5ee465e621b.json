@@ -4,8 +4,27 @@
     "fields": [
         {
             "key": "field_5d5ee49b5274b",
-            "label": "street",
-            "name": "street",
+            "label": "address 1",
+            "name": "address_1",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5d670cbd79534",
+            "label": "address 2",
+            "name": "address_2",
             "type": "text",
             "instructions": "",
             "required": 0,
@@ -115,6 +134,103 @@
             "prepend": "",
             "append": "",
             "maxlength": ""
+        },
+        {
+            "key": "field_5d65863b0c4b1",
+            "label": "products_viewed",
+            "name": "products_viewed",
+            "type": "repeater",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "",
+            "sub_fields": [
+                {
+                    "key": "field_5d6586510c4b2",
+                    "label": "product_id",
+                    "name": "product_id",
+                    "type": "number",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": "",
+                    "max": "",
+                    "step": ""
+                },
+                {
+                    "key": "field_5d65865f0c4b3",
+                    "label": "product_name",
+                    "name": "product_name",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
+                },
+                {
+                    "key": "field_5d6586830c4b4",
+                    "label": "date_viewed",
+                    "name": "date_viewed",
+                    "type": "date_time_picker",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "display_format": "Y-m-d H:i:s",
+                    "return_format": "Y-m-d H:i:s",
+                    "first_day": 1
+                }
+            ]
+        },
+        {
+            "key": "field_5d670cc379535",
+            "label": "status",
+            "name": "status",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
         }
     ],
     "location": [
@@ -134,5 +250,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1566503321
+    "modified": 1567034576
 }
