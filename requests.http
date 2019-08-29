@@ -1,0 +1,120 @@
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU2NzAzNDI0OCwibmJmIjoxNTY3MDM0MjQ4LCJleHAiOjE1Njc2MzkwNDgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.GXnRITIrCLdbiyxeryle0Y9pwrmmNz3mqvzQm6Je1_E
+@host = http://gated-woocommerce.local
+
+@username = tittles
+@email = tittles1@gmail.com
+@name = Tittles Cat
+@first_name = First Name
+@last_name = Last Name
+@address_1 = 512 Belgrade St
+@address_2 = apt A
+@city = Philadelphia
+@state = PA
+@zip = 19125
+@phone = 7775558888
+@coupon_code = createcoupon
+@password = Password123!&*
+
+@userid = 3351
+
+### GET A TOKEN FOR USERNAME AND PASSWORD 
+POST {{host}}/wp-json/jwt-auth/v1/token/ HTTP/1.1
+content-type: application/json
+
+{
+    "username": "apitest",
+    "password": "Zpqb40waPqvg1j@a6FUia$V#"
+}
+
+
+### LIST ALL API ENDPOINTS
+GET http://gated-woocommerce.local/wp-json
+
+
+### GET ALL USERS
+GET {{host}}/wp-json/wp/v2/users HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+
+### GET A USER
+GET {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+
+### GET A CUSTOMER
+GET {{host}}/wp-json/wc/v3/customers/{{userid}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+
+### CREATE A USER
+    # username -- should be same as email
+    # fields to include:
+        # name 
+        # email
+        # address
+        # phone
+POST {{host}}/wp-json/wp/v2/users HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "username":     "{{email}}",
+    "email":        "{{email}}",
+    "password":     "{{password}}",
+    "first_name" :  "{{first_name}}",
+    "last_name" :   "{{last_name}}",
+    "address_1" :   "{{address_1}}",
+    "address_2" :   "{{address_2}}",
+    "city":         "{{city}}",
+    "state":        "{{state}}",
+    "zip":          "{{zip}}",
+    "phone":        "{{phone}}",
+    "coupon_code":  "{{coupon_code}}"
+}
+
+
+### UPDATE A USER
+POST {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "username":     "{{username}}",
+    "email":        "{{email}}",
+    "password":     "{{password}}",
+    "first_name" :  "{{first_name}}",
+    "last_name" :   "{{last_name}}",
+    "address_1" :   "{{address_1}}",
+    "address_2" :   "{{address_2}}",
+    "city":         "{{city}}",
+    "state":        "{{state}}",
+    "zip":          "{{zip}}",
+    "phone":        "{{phone}}",
+    "coupon_code":  "{{coupon_code}}"
+}
+
+
+### DELETE A USER
+    # required:
+        # force -- needs to be set to true
+        # reassign -- the ID of user to reassign any Posts
+
+DELETE {{host}}/wp-json/wp/v2/users/{{userid}}
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "force" : "true",
+    "reassign" : "3339"
+}
+
+
+
+
+### GET A COUPON
+GET {{host}}/wp-json/wc/v3/coupons/590
+Content-Type: application/json
+Authorization: Bearer {{token}}
