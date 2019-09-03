@@ -1,6 +1,6 @@
+### VARIABLES FOR API TESTING
 @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU2NzAzNDI0OCwibmJmIjoxNTY3MDM0MjQ4LCJleHAiOjE1Njc2MzkwNDgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.GXnRITIrCLdbiyxeryle0Y9pwrmmNz3mqvzQm6Je1_E
 @host = http://gated-woocommerce.local
-
 @username = tittles
 @email = tittles1@gmail.com
 @name = Tittles Cat
@@ -14,7 +14,6 @@
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-
 @userid = 3351
 
 ### GET A TOKEN FOR USERNAME AND PASSWORD 
