@@ -231,6 +231,21 @@ function wcg_cookie( $atts ) {
 add_shortcode('wcg_cookie', 'wcg_cookie'); 
 
 
+// Shortcode that displays user data
+function wcg_user_data( $atts ) {    
+    extract( shortcode_atts( array(
+        'name' => 'name',
+    ), $atts ) );
+
+    $user_id = wcg_get_customer_id_by_coupon_cookie();
+    $user_meta = get_user_meta( $user_id, $name, true );
+
+    return $user_meta;
+
+}
+add_shortcode( 'wcg_user_data', 'wcg_user_data');
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -469,4 +484,10 @@ function wcg_get_customer_id_by_coupon_cookie() {
         $user_id = substr( $coupon_code, strrpos( $coupon_code, '*') + 1 );
         return $user_id;
     }
+}
+
+
+// Create an ACF Pro Options page 
+if( function_exists('acf_add_options_page') ) {
+	acf_add_options_page();
 }
