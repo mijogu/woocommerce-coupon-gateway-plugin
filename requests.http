@@ -1,22 +1,39 @@
-### VARIABLES FOR API TESTING
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU2NzAzNDI0OCwibmJmIjoxNTY3MDM0MjQ4LCJleHAiOjE1Njc2MzkwNDgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.GXnRITIrCLdbiyxeryle0Y9pwrmmNz3mqvzQm6Je1_E
-@host = http://gated-woocommerce.local
+##########################################
+### VARIABLES
+##########################################
+    # The following variables are being defined/used during testing. 
+    # This file and the following variables work with the 
+    # VS Code "Rest Client extension" which can be found here:
+    # https://github.com/Huachao/vscode-restclient
+
+# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU2NzAzNDI0OCwibmJmIjoxNTY3MDM0MjQ4LCJleHAiOjE1Njc2MzkwNDgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.GXnRITIrCLdbiyxeryle0Y9pwrmmNz3mqvzQm6Je1_E
+# @host = http://gated-woocommerce.local
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU2NzUyODYxMCwibmJmIjoxNTY3NTI4NjEwLCJleHAiOjE1NjgxMzM0MTAsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.gc3P6Vrpv3OLTdyd81H6coqedrtzs6Y_swsJTSPKKjY
+
+@host = http://gatedsite1.visagedevsite.info
 @username = tittles
-@email = tittles1@gmail.com
-@name = Tittles Cat
-@first_name = First Name
-@last_name = Last Name
-@address_1 = 512 Belgrade St
-@address_2 = apt A
-@city = Philadelphia
+@email = tittles2@gmail.com
+@name = API TEST
+@first_name = Firstname2
+@last_name = Lastname2
+@address_1 = 512 Main Blvd
+@address_2 = apt B
+@city = Phila
 @state = PA
-@zip = 19125
+@zip = 19106
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-@userid = 3351
+@userid = 3343
 
+########################################################
 ### GET A TOKEN FOR USERNAME AND PASSWORD 
+##########################################
+    # We are using the "JWT Authentication for the WP REST API" plugin, which can be found here:
+    # https://github.com/Tmeister/wp-api-jwt-auth
+    # Supply the endpoint with a (previously created) WordPress username and
+    # password to get a JWT Token which can be stored/used in all subsequent API calls. 
+
 POST {{host}}/wp-json/jwt-auth/v1/token/ HTTP/1.1
 content-type: application/json
 
@@ -26,35 +43,52 @@ content-type: application/json
 }
 
 
-### LIST ALL API ENDPOINTS
-GET http://gated-woocommerce.local/wp-json
-
-
+##########################################
 ### GET ALL USERS
+##########################################
+    # This will return all WP Users.
 GET {{host}}/wp-json/wp/v2/users HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
 
 
+
+##########################################
 ### GET A USER
+##########################################
+    # By supplying a the USER ID at the end of this endpoint
+    # the data for a specific user will be returned. 
+
 GET {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
 
 
-### GET A CUSTOMER
-GET {{host}}/wp-json/wc/v3/customers/{{userid}} HTTP/1.1
-content-type: application/json
-Authorization: Bearer {{token}}
-
-
+##########################################
 ### CREATE A USER
-    # username -- should be same as email
-    # fields to include:
-        # name 
+##########################################
+    # This will create a new User in WP. 
+    # The following fields are required:
         # email
-        # address
+        # username -- this should be same as email
+        # password 
+    # The following fields are optional:
+        # first_name 
+        # last_name
+        # address_1
+        # address_2
+        # city
+        # state
+        # zip
         # phone
+        # coupon_code
+    # NOTE: 
+        # Currently, a user is only able to have 1 coupon code.
+        # In order to assign a Coupon Code to a user, you will need 
+        # to supply the "coupon_code" parameter with a value of "createcoupon".
+        # We will be refactoring how Coupon Codes are assigned to users to allow
+        # users to have multiple Coupon Codes.
+    
 POST {{host}}/wp-json/wp/v2/users HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
@@ -74,16 +108,18 @@ Authorization: Bearer {{token}}
     "coupon_code":  "{{coupon_code}}"
 }
 
-
+##########################################
 ### UPDATE A USER
+##########################################
+    # This endpoint allows for the same parameters as above.
+    # However, you need to supply the USER ID in the url in order to 
+    # update the correct user.
+
 POST {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "username":     "{{username}}",
-    "email":        "{{email}}",
-    "password":     "{{password}}",
     "first_name" :  "{{first_name}}",
     "last_name" :   "{{last_name}}",
     "address_1" :   "{{address_1}}",
@@ -95,11 +131,16 @@ Authorization: Bearer {{token}}
     "coupon_code":  "{{coupon_code}}"
 }
 
-
+##########################################
 ### DELETE A USER
-    # required:
-        # force -- needs to be set to true
-        # reassign -- the ID of user to reassign any Posts
+##########################################
+    # This endpoint may not be necessary, but was useful during testing.
+    # You must supply the USER ID in the URL, and the following
+    # parameters are required as well:
+        # force -- needs to be set to "true"
+        # reassign -- the ID of an administrator user - this is 
+            # meant to reassign any Posts to another user (though that isn't 
+            # relevant to us).
 
 DELETE {{host}}/wp-json/wp/v2/users/{{userid}}
 content-type: application/json
@@ -111,9 +152,43 @@ Authorization: Bearer {{token}}
 }
 
 
+###############################################################
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# THE FOLLOWING ENDPOINTS ARE INCLUDED FOR TESTING PURPOSES ONLY.
+# THEY ARE CURRENTLY BEING USED FOR DEVELOPMENT PURPOSES ONLY AND 
+# THE DATA SHOULD NOT BE EXPECTED TO BE ACCURATE / RELEVANT. 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+###############################################################
 
 
-### GET A COUPON
+
+
+
+##########################################
+### GET A WOOCOMMERCE COUPON
+##########################################
+
 GET {{host}}/wp-json/wc/v3/coupons/590
 Content-Type: application/json
 Authorization: Bearer {{token}}
+
+
+##########################################
+### GET A WOOCOMMERCE CUSTOMER
+##########################################
+
+GET {{host}}/wp-json/wc/v3/customers/{{userid}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+
+##########################################
+### LIST ALL API ENDPOINTS
+##########################################
+    # This is a default, non-authenticated endpoint of the WP REST API.
+    # It will return endpoints for all available API calls.
+    # It should not be needed, but was used for development only. 
+
+GET http://gated-woocommerce.local/wp-json
