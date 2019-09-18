@@ -34,6 +34,8 @@
     # Supply the endpoint with a (previously created) WordPress username and
     # password to get a JWT Token which can be stored/used in all subsequent API calls. 
 
+    # Sample endpoint: POST http://gatedsite1.visagedevsite.info/wp-json/jwt-auth/v1/token/
+
 POST {{host}}/wp-json/jwt-auth/v1/token/ HTTP/1.1
 content-type: application/json
 
@@ -47,6 +49,9 @@ content-type: application/json
 ### GET ALL USERS
 ##########################################
     # This will return all WP Users.
+
+    # Sample endpoint: GET http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users
+
 GET {{host}}/wp-json/wp/v2/users HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
@@ -58,6 +63,8 @@ Authorization: Bearer {{token}}
 ##########################################
     # By supplying a the USER ID at the end of this endpoint
     # the data for a specific user will be returned. 
+
+    # Sample endpoint: GET http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users/100
 
 GET {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
 content-type: application/json
@@ -88,6 +95,8 @@ Authorization: Bearer {{token}}
         # to supply the "coupon_code" parameter with a value of "createcoupon".
         # We will be refactoring how Coupon Codes are assigned to users to allow
         # users to have multiple Coupon Codes.
+
+    # Sample endpoint: POST http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users
     
 POST {{host}}/wp-json/wp/v2/users HTTP/1.1
 content-type: application/json
@@ -115,6 +124,8 @@ Authorization: Bearer {{token}}
     # However, you need to supply the USER ID in the url in order to 
     # update the correct user.
 
+    # Sample endpoint: POST http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users/100
+
 POST {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
@@ -140,7 +151,9 @@ Authorization: Bearer {{token}}
         # force -- needs to be set to "true"
         # reassign -- the ID of an administrator user - this is 
             # meant to reassign any Posts to another user (though that isn't 
-            # relevant to us).
+            # actually relevant to us).
+
+    # Sample endpoint: DELETE http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users/100
 
 DELETE {{host}}/wp-json/wp/v2/users/{{userid}}
 content-type: application/json
