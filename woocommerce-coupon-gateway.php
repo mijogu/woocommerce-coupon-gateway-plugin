@@ -19,6 +19,7 @@ License: GPLv2
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 defined( 'WCG_COOKIE_CODE' ) or define( 'WCG_COOKIE_CODE', 'wcg_code' );
 defined( 'WCG_COOKIE_NAME' ) or define( 'WCG_COOKIE_NAME', 'wcg_name' );
+defined( 'WCG_USERS_PER_PAGE' ) or define( 'WCG_USERS_PER_PAGE', 1000);
 define( 'WCG_TESTING', false);
 
 // if ( strpos( get_site_url(), '.local') ) {
@@ -490,4 +491,18 @@ function wcg_get_customer_id_by_coupon_cookie() {
 // Create an ACF Pro Options page 
 if( function_exists('acf_add_options_page') ) {
 	acf_add_options_page();
+}
+
+
+// Increase the APIs default maximum "per_page" amount. 
+// Originally, "per_page" needed to be between 1 and 100
+
+add_filter( 'rest_user_query', 'wcg_change_terms_per_page', 2, 10 );
+
+function wcg_change_terms_per_page( $prepared_args, $request ){
+    
+    $max = max( WCG_USERS_PER_PAGE, (int) $request->get_param( 'custom_per_page' ) );
+
+    $prepared_args['number'] = $max;
+    return $prepared_args;
 }

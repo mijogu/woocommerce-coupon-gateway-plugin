@@ -6,11 +6,12 @@
     # VS Code "Rest Client extension" which can be found here:
     # https://github.com/Huachao/vscode-restclient
 
-# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU2NzAzNDI0OCwibmJmIjoxNTY3MDM0MjQ4LCJleHAiOjE1Njc2MzkwNDgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.GXnRITIrCLdbiyxeryle0Y9pwrmmNz3mqvzQm6Je1_E
 # @host = http://gated-woocommerce.local
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU2NzUyODYxMCwibmJmIjoxNTY3NTI4NjEwLCJleHAiOjE1NjgxMzM0MTAsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.gc3P6Vrpv3OLTdyd81H6coqedrtzs6Y_swsJTSPKKjY
+# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU2OTA4NzE2MywibmJmIjoxNTY5MDg3MTYzLCJleHAiOjE1Njk2OTE5NjMsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19._Xwh1rw09Fsnfb93Zi1Rj-S88Cm7EjKM9YbAr35I-4M
 
 @host = http://gatedsite1.visagedevsite.info
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU2OTA4NDc2OCwibmJmIjoxNTY5MDg0NzY4LCJleHAiOjE1Njk2ODk1NjgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.nvE9qEtYa5NESntyEjSVA9Y9-g6P8Hq7URMCYWdfMLs
+
 @username = tittles
 @email = tittles2@gmail.com
 @name = API TEST
@@ -49,12 +50,19 @@ content-type: application/json
 ### GET ALL USERS
 ##########################################
     # This will return all WP Users.
+    # By default, this endpoint will only return max 100 users. 
+    # This was changed to 1000, but can be overridden with the 
+    # 'custom_per_page' parameter. 
 
     # Sample endpoint: GET http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users
 
 GET {{host}}/wp-json/wp/v2/users HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
+
+# {
+#     "custom_per_page": "4"
+# }
 
 
 
