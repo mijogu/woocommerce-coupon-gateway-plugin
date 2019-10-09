@@ -168,10 +168,10 @@
                 "id": ""
             },
             "default_value": "",
+            "maxlength": "",
             "placeholder": "",
             "prepend": "",
-            "append": "",
-            "maxlength": ""
+            "append": ""
         },
         {
             "key": "field_5d65863b0c4b1",
@@ -250,25 +250,6 @@
                     "first_day": 1
                 }
             ]
-        },
-        {
-            "key": "field_5d670cc379535",
-            "label": "status",
-            "name": "status",
-            "type": "text",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "default_value": "",
-            "placeholder": "",
-            "prepend": "",
-            "append": "",
-            "maxlength": ""
         },
         {
             "key": "field_5d9cd64f2ad4d",
@@ -387,9 +368,9 @@
                     "maxlength": ""
                 },
                 {
-                    "key": "field_5d9cd7232ad53",
-                    "label": "product description",
-                    "name": "product_description",
+                    "key": "field_5d9cd72d2ad54",
+                    "label": "order id",
+                    "name": "order_id",
                     "type": "text",
                     "instructions": "",
                     "required": 0,
@@ -404,23 +385,6 @@
                     "prepend": "",
                     "append": "",
                     "maxlength": ""
-                },
-                {
-                    "key": "field_5d9cd72d2ad54",
-                    "label": "date purchased",
-                    "name": "date_purchased",
-                    "type": "date_time_picker",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "display_format": "Y-m-d H:i:s",
-                    "return_format": "Y-m-d H:i:s",
-                    "first_day": 1
                 }
             ]
         }
@@ -442,5 +406,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1570560083
+    "modified": 1570582643
 }
