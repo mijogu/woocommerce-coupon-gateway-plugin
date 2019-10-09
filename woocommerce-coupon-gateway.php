@@ -150,12 +150,34 @@ function output_testing_info( $text ) {
 
 // After a successful transaction, apply the coupon code
 // that was saved as a cookie to the Order. 
+//
+// And update the coupon_status for the user to 'pending'
 add_action( 'woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
 function wcg_mark_coupon_used( $order_id ) {
     $order = new WC_Order( $order_id );
+    $order_items = $order->get_items();
+    // $item = $order_items[0];
+    //$item = $order->get_item();
+
     $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
     $order->apply_coupon( $coupon_code );
     output_testing_info( "Coupon '". $coupon_code. "' has been used!" );
+
+    $userID = wcg_get_customer_id_by_coupon_code( $coupon_code );
+    $user = 'user_' . $userID;
+    // change coupon_status to pending
+    update_field( 'coupon_status', 'pending', $user );
+    // add product to purchase history
+    // there should only be 1 product, but WooCommerece wants us to
+    // use the loop regardless. 
+    foreach ( $order_items as $item ) {
+        $row = array(
+            'product_id' => $item->get_product_id(),
+            'product_name' => $item->get_name(),
+            'order_id' => $order_id
+        );
+        add_row( 'purchase_history', $row, $user );
+    }
 }
 
 // Add "gift review" section before checkout
@@ -174,7 +196,7 @@ function wcg_gift_review() {
 
         echo '<div id="gift_review">'
             . '<div class="gift_header">Your Gift</div>'
-            . $product_detail->get_image( 'thumbnail' ) //( size, attr )
+            . $product_detail->get_image( 'cart_prod' ) //( size, attr )
             . '<div class="gift_prod_title">' . $product->get_title() . '</div>'
             . '<a href="/">Select a different gift</a>'
             . '</div>';
@@ -238,7 +260,7 @@ function wcg_user_data( $atts ) {
         'name' => 'name',
     ), $atts ) );
 
-    $user_id = wcg_get_customer_id_by_coupon_cookie();
+    $user_id = wcg_get_customer_id_by_coupon_code();
     $user_meta = get_user_meta( $user_id, $name, true );
 
     return $user_meta;
@@ -263,7 +285,7 @@ add_action( 'rest_api_init', 'wcg_api_init');
 
 function wcg_api_init() {
     $custom_meta_fields = array(
-        'status',
+        'carvana_uid',
         'first_name',
         'last_name',
         'address_1',
@@ -272,51 +294,104 @@ function wcg_api_init() {
         'state',
         'zip',
         'phone',
+        'coupon_code',
+        'coupon_status',
+        'products_viewed',
+        'past_coupons',
+        'purchase_history'
     );
 
     foreach ( $custom_meta_fields as $field ) {
-        register_rest_field( 
-            'user', 
-            $field, 
-            array(
-                'get_callback'      => 'wcg_get_usermeta_cb',
-                'update_callback'   => 'wcg_update_usermeta_cb'
-            )
-        );
+        switch ($field) :
+            case 'coupon_code':
+                // Field has custom UPDATE callback
+                register_rest_field(
+                    'user',
+                    $field,
+                    array(
+                        'get_callback'      => 'wcg_get_usermeta_cb',
+                        'update_callback'   => 'wcg_update_coupon_code_cb'
+                    )
+                );
+            break;
+            case 'products_viewed':
+                // "products_viewed" needs a specific get_callback
+                // Field does not support UPDATE, only GET
+                register_rest_field(
+                    'user',
+                    $field,
+                    array(
+                        'get_callback'      => 'wcg_get_user_products_viewed_cb',
+                        'update_callback'   => null
+                    )
+                );
+            break;
+            case 'past_coupons':
+                // Field does not support UPDATE, only GET
+                register_rest_field(
+                    'user',
+                    $field,
+                    array(
+                        'get_callback'      => 'wcg_get_user_past_coupons_cb',
+                        'update_callback'   => null
+                    )
+                );
+            break;
+            case 'purchase_history':
+                // Field does not support UPDATE, only GET
+                register_rest_field(
+                    'user',
+                    $field,
+                    array(
+                        'get_callback'      => 'wcg_get_user_purchase_history_cb',
+                        'update_callback'   => null
+                    )
+                );
+            break;
+            case 'coupon_status':
+                register_rest_field(
+                    'user',
+                    $field,
+                    array(
+                        'get_callback'      => 'wcg_get_usermeta_cb',
+                        'update_callback'   => 'wcg_update_coupon_status_cb'
+                    )
+                );
+            break;
+            default: 
+                register_rest_field( 
+                    'user', 
+                    $field, 
+                    array(
+                        'get_callback'      => 'wcg_get_usermeta_cb',
+                        'update_callback'   => 'wcg_update_usermeta_cb'
+                    )
+                );
+            break;
+        endswitch;
     }
-
-    // "coupon_code" needs a specific update_callback
-    // that will create a new Coupon and assign the code to this field
-    register_rest_field(
-        'user',
-        'coupon_code',
-        array(
-            'get_callback'      => 'wcg_get_usermeta_cb',
-            'update_callback'   => 'wcg_update_coupon_code_cb'
-        )
-    );
-
-
-    // "products_viewed" needs a specific get_callback
-    // NOTE: the API will NOT UPDATE this field -- this feature should not be needed
-    register_rest_field(
-        'user',
-        'products_viewed',
-        array(
-            'get_callback'      => 'wcg_get_user_products_viewed_cb',
-            'update_callback'   => 'wcg_update_usermeta_cb'
-        )
-    );
 }
 
 // The value must be set to 'createcoupon' in order for a 
 // coupon to be generated and assigned to the user
 function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
-    if ( $value == 'createcoupon' ) {
+    if ( $value != 'createcoupon' ) {
+        return;
+    } elseif ( wcg_check_able_to_assign_coupon( $user->ID ) ) {
         $email = $user->data->user_email;
         $value = generate_coupon( $email, $user->ID );
-    } 
-    return update_user_meta( $user->ID, $field_name, $value );
+        update_user_meta( $user->ID, 'coupon_status', 'registered' );
+        update_user_meta( $user->ID, 'coupon_code', $value );
+        return;
+    } else {
+        return new WP_Error( 'coupon_not_allowed', "Unable to create a new coupon code for this user at this time." );
+    }
+}
+
+function wcg_check_able_to_assign_coupon( $userId ) {
+    $user = 'user_' . $userId;
+    if ( trim( get_field( 'coupon_code', $user ) ) == "" ) return true;
+    return false;
 }
 
 
@@ -375,6 +450,75 @@ function wcg_get_user_products_viewed_cb( $user, $field_name, $request ) {
     return $products;
 }
 
+function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
+    $userId = 'user_' . $user['id'];
+    $field = get_field( $field_name, $userId );
+    $products = array();
+    if ( have_rows( $field_name, $userId ) ) {
+        while ( have_rows( $field_name, $userId ) ) {
+            the_row();
+            $products[] = array(
+                get_sub_field( "product_id" ),
+                get_sub_field( "product_name" ),
+                get_sub_field( "order_id" )
+                // get_sub_field( "product_description"),
+                // get_sub_field( "date_purchased")
+            );
+        }
+    }
+    return $products;
+}
+
+function wcg_get_user_past_coupons_cb( $user, $field_name, $request ) {
+    $userId = 'user_' . $user['id'];
+    $field = get_field( $field_name, $userId );
+    $products = array();
+    if ( have_rows( $field_name, $userId ) ) {
+        while ( have_rows( $field_name, $userId ) ) {
+            the_row();
+            $products[] = array(
+                get_sub_field( "coupon_code"),
+                get_sub_field( "coupon_status"),
+            );
+        }
+    }
+    return $products;
+}
+
+
+function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
+    // delivered -> move to past coupons with status
+    // canceled -> move to past coupons with status
+    // pending - just update
+    // confirmed - just update
+    // registered - just update
+    switch ( $value ) : 
+        case "delivered":
+        case "canceled":
+        case "cancelled":
+            $userID = 'user_'. $user->ID;
+            $coupon_code = get_field( 'coupon_code', $userID );
+            if ( trim($coupon_code) == "" ) {
+                return new WP_ERROR( 'no_coupon_code', 'The user does not have an active coupon code to update.' );
+            }
+            // update past_coupons
+            $row = array(
+                'coupon_code' => $coupon_code,
+                'coupon_status' => $value
+            );
+            add_row( 'past_coupons', $row, $userID );
+
+            // empty coupon_code & coupon_status
+            update_field( 'coupon_code', '', $userID );
+            update_field( 'coupon_status', '', $userID );
+            
+        break;
+        default: 
+            update_user_meta( $user->ID, $field_name, $value );
+        break;
+    endswitch;
+
+}
 
 function wcg_get_usermeta_cb( $user, $field_name, $request ) {
     return get_user_meta( $user['id'], $field_name, true);
@@ -385,6 +529,7 @@ function wcg_update_usermeta_cb( $value, $user, $field_name ) {
 
 
 if ( class_exists('ACF') ) {
+    
     
     // Save ACF fields automatically
     add_filter( 'acf/settings/save_json', function() {
@@ -412,7 +557,7 @@ function wcg_record_product_page_visit() {
     if ( is_product() ) {
         // Only record the visit for users that have a 
         // cookie with a coupon code. 
-        $user_id = wcg_get_customer_id_by_coupon_cookie();
+        $user_id = wcg_get_customer_id_by_coupon_code();
         if ( $user_id > 0 ) {
             
             $row = array(
@@ -432,7 +577,7 @@ add_filter('woocommerce_checkout_get_value', 'wcg_populate_checkout_fields', 10,
 
 // Our hooked in function - $fields is passed via the filter!
 function wcg_populate_checkout_fields( $input, $key ) {
-    $user_id = wcg_get_customer_id_by_coupon_cookie();
+    $user_id = wcg_get_customer_id_by_coupon_code();
     $user_key = 'user_' . $user_id;
     
     switch ($key) :
@@ -470,7 +615,7 @@ function wcg_populate_checkout_fields( $input, $key ) {
 
 // Get the current user OBJECT by the Coupon Code cookie
 function wcg_get_customer_object_by_coupon_cookie() {
-    $user_id = wcg_get_customer_id_by_coupon_cookie();
+    $user_id = wcg_get_customer_id_by_coupon_code();
     if ( $user_id > 0 ) {
         $user = get_user_by( 'ID', $user_id );
         return $user;
@@ -478,13 +623,16 @@ function wcg_get_customer_object_by_coupon_cookie() {
     return false;
 }
 
-// Get the current user's ID from the Coupon Code cookie
-function wcg_get_customer_id_by_coupon_cookie() {
-    if ( isset( $_COOKIE[ WCG_COOKIE_CODE ] ) ) {
+// Get the current user's ID from the coupon_code parameter.
+// If coupon_code is not supplied, get it from the COOKIE.
+function wcg_get_customer_id_by_coupon_code( $coupon_code = null ) {
+    if ( $coupon_code == null && !isset( $_COOKIE[ WCG_COOKIE_CODE ] )) {
+        return false;
+    } elseif ( $coupon_code == null && isset( $_COOKIE[ WCG_COOKIE_CODE ] )) {
         $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
-        $user_id = substr( $coupon_code, strrpos( $coupon_code, '*') + 1 );
-        return $user_id;
     }
+    $user_id = substr( $coupon_code, strrpos( $coupon_code, '*') + 1 );
+    return $user_id;
 }
 
 
