@@ -6,11 +6,11 @@
     # VS Code "Rest Client extension" which can be found here:
     # https://github.com/Huachao/vscode-restclient
 
-# @host = http://gated-woocommerce.local
-# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU2OTA4NzE2MywibmJmIjoxNTY5MDg3MTYzLCJleHAiOjE1Njk2OTE5NjMsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19._Xwh1rw09Fsnfb93Zi1Rj-S88Cm7EjKM9YbAr35I-4M
+@host = http://gated-woocommerce.local
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU3MDU2MDE1OCwibmJmIjoxNTcwNTYwMTU4LCJleHAiOjE1NzExNjQ5NTgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.fwOgW_N3zIIbHpwA1t29qooGTtcAhmGSy7roAq3KyM0
 
-@host = http://gatedsite1.visagedevsite.info
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU2OTA4NDc2OCwibmJmIjoxNTY5MDg0NzY4LCJleHAiOjE1Njk2ODk1NjgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.nvE9qEtYa5NESntyEjSVA9Y9-g6P8Hq7URMCYWdfMLs
+# @host = http://gatedsite1.visagedevsite.info
+# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU2OTA4NDc2OCwibmJmIjoxNTY5MDg0NzY4LCJleHAiOjE1Njk2ODk1NjgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.nvE9qEtYa5NESntyEjSVA9Y9-g6P8Hq7URMCYWdfMLs
 
 @username = tittles
 @email = tittles2@gmail.com
@@ -25,7 +25,9 @@
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-@userid = 3343
+@userid = 3351
+@carvanauid = C2654133-19A1-4AF8-ABEA-2D3920F65B28
+
 
 ########################################################
 ### GET A TOKEN FOR USERNAME AND PASSWORD 
@@ -61,7 +63,7 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 # {
-#     "custom_per_page": "4"
+#     "custom_per_page": "100"
 # }
 
 
@@ -132,6 +134,11 @@ Authorization: Bearer {{token}}
     # However, you need to supply the USER ID in the url in order to 
     # update the correct user.
 
+    # Updating "coupon_status" to "delivered" or "canceled" will move
+    # the active coupon into the past_coupons array, and will allow
+    # a new coupon to be created in a subsequent update call. Updating 
+    # "coupon_status" to anything else will update the field. 
+
     # Sample endpoint: POST http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users/100
 
 POST {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
@@ -163,7 +170,7 @@ Authorization: Bearer {{token}}
 
     # Sample endpoint: DELETE http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users/100
 
-DELETE {{host}}/wp-json/wp/v2/users/{{userid}}
+DELETE {{host}}/wp-json/wp/v2/users/{{userid}} HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
 
@@ -171,6 +178,21 @@ Authorization: Bearer {{token}}
     "force" : "true",
     "reassign" : "3339"
 }
+
+
+##########################################
+### GET USER BY CARVANA UID
+##########################################
+    # This endpoint will get the User by their Carvana UID. 
+    # This endpoint can be used to get a User by any of their meta fields,
+    # by swapping out the 'filter[meta_key]' value for another meta key. 
+
+    # Sample endpoint: GET http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users?filter[meta_key]=carvana_uid&filter[meta_value]=C2654133-19A1-4AF8-ABEA-2D3920F65B28
+
+GET {{host}}/wp-json/wp/v2/users?filter[meta_key]=carvana_uid&filter[meta_value]={{carvanauid}}
+content-type: application/json
+Authorization: Bearer {{token}}
+
 
 
 ###############################################################
