@@ -140,7 +140,7 @@
             "label": "coupon code",
             "name": "coupon_code",
             "type": "text",
-            "instructions": "",
+            "instructions": "To manually create a coupon code for user enter \"createcoupon\" and save. A new coupon code will be generated automatically.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -236,6 +236,84 @@
                     "key": "field_5d6586830c4b4",
                     "label": "date_viewed",
                     "name": "date_viewed",
+                    "type": "date_time_picker",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "display_format": "Y-m-d H:i:s",
+                    "return_format": "Y-m-d H:i:s",
+                    "first_day": 1
+                }
+            ]
+        },
+        {
+            "key": "field_5daf6e9a59cd8",
+            "label": "products removed from cart",
+            "name": "products_removed_from_cart",
+            "type": "repeater",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "",
+            "sub_fields": [
+                {
+                    "key": "field_5daf6e9b59cd9",
+                    "label": "product_id",
+                    "name": "product_id",
+                    "type": "number",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": "",
+                    "max": "",
+                    "step": ""
+                },
+                {
+                    "key": "field_5daf6e9b59cda",
+                    "label": "product_name",
+                    "name": "product_name",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
+                },
+                {
+                    "key": "field_5daf6e9b59cdb",
+                    "label": "date removed",
+                    "name": "date_removed",
                     "type": "date_time_picker",
                     "instructions": "",
                     "required": 0,
@@ -406,5 +484,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1570582643
+    "modified": 1571778319
 }
