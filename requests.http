@@ -7,10 +7,13 @@
     # https://github.com/Huachao/vscode-restclient
 
 @host = http://gated-woocommerce.local
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU3MDU2MDE1OCwibmJmIjoxNTcwNTYwMTU4LCJleHAiOjE1NzExNjQ5NTgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.fwOgW_N3zIIbHpwA1t29qooGTtcAhmGSy7roAq3KyM0
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU3MTc2NzQ5MywibmJmIjoxNTcxNzY3NDkzLCJleHAiOjE1NzIzNzIyOTMsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.li8rPauhrKejzudc0R4EFZZXHSYaAwGHOba-vl_XQFg
 
 # @host = http://gatedsite1.visagedevsite.info
-# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU2OTA4NDc2OCwibmJmIjoxNTY5MDg0NzY4LCJleHAiOjE1Njk2ODk1NjgsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.nvE9qEtYa5NESntyEjSVA9Y9-g6P8Hq7URMCYWdfMLs
+# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU3MDcyODg2NCwibmJmIjoxNTcwNzI4ODY0LCJleHAiOjE1NzEzMzM2NjQsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.l-BtIqAmI6sNuCILhfy6YPPzVx9mMX8UG2cS8qdTYIg
+
+# @host = http://bncarvanadev.wpengine.com
+# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9ibmNhcnZhbmFkZXYud3BlbmdpbmUuY29tIiwiaWF0IjoxNTcxNjc5NTEyLCJuYmYiOjE1NzE2Nzk1MTIsImV4cCI6MTU3MjI4NDMxMiwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMzM0MSJ9fX0.SbH8RBT0Yv82tl9U0vfXke37Cy70JROiYULpSCfYwNw
 
 @username = tittles
 @email = tittles2@gmail.com
@@ -154,7 +157,8 @@ Authorization: Bearer {{token}}
     "state":        "{{state}}",
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
-    "coupon_code":  "{{coupon_code}}"
+    //"coupon_code":  "{{coupon_code}}",
+    "coupon_status": "delivered"
 }
 
 ##########################################
