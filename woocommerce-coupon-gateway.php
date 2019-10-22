@@ -228,6 +228,17 @@ function wcg_rename_place_order_button() {
 add_filter( 'woocommerce_add_to_cart_validation', 'wcg_remove_cart_item_before_add_to_cart', 20, 3 );
 function wcg_remove_cart_item_before_add_to_cart( $passed, $product_id, $quantity ) {
     if( ! WC()->cart->is_empty())
+        $items = WC()->cart->get_cart_contents();
+        foreach ( $items as $item ) {
+            $product = wc_get_product( $item['product_id'] );
+            // update Products Removed From Cart
+            $row = array(
+                'product_id'    => $item['product_id'],
+                'product_name'  => $product->get_name(),
+                'date_removed'  => date('Y-m-d H:i:s')
+            );
+            add_row( 'products_removed_from_cart', $row, 'user_3351' );
+        }
         WC()->cart->empty_cart();
     return $passed;
 }
@@ -297,6 +308,7 @@ function wcg_api_init() {
         'coupon_code',
         'coupon_status',
         'products_viewed',
+        'products_removed_from_cart',
         'past_coupons',
         'purchase_history'
     );
@@ -348,6 +360,17 @@ function wcg_api_init() {
                     )
                 );
             break;
+            case 'products_removed_from_cart':
+                // Field does not support UPDATE, only GET
+                register_rest_field(
+                    'user',
+                    $field,
+                    array(
+                        'get_callback'      => 'wcg_get_user_products_removed_from_cart_cb',
+                        'update_callback'   => null
+                    )
+                );
+                break;
             case 'coupon_status':
                 register_rest_field(
                     'user',
@@ -395,11 +418,23 @@ function wcg_check_able_to_assign_coupon( $userId ) {
 }
 
 
+function wcg_update_coupon_code( $value, $user_id, $field ) {
+    if ($value == 'createcoupon') {
+        //$myvalue = $value . "xxxxxx";
+        $id = substr( $user_id, strrpos( $user_id, '_') + 1 );
+        $user = get_user_by( 'id', $id );
+        $value = generate_coupon( $user->user_email, $id );
+    }
+    return $value;    
+}
+add_filter('acf/update_value/name=coupon_code', 'wcg_update_coupon_code', 10, 3);
+
+
 function generate_coupon( $email, $user_id ) {
     // Generate coupon code from hashed email address
     // This should guarantee uniqueness, since there 
     // won't be duplicate email addresses for users. 
-    $coupon_code = hash( 'md5', $email, false ) . "*$user_id";
+    $coupon_code = hash( 'md5', $email, false ) . "-" . time(). "-$user_id";
     
     // Create coupon and get ID
     $coupon = array(
@@ -463,6 +498,23 @@ function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
                 get_sub_field( "order_id" )
                 // get_sub_field( "product_description"),
                 // get_sub_field( "date_purchased")
+            );
+        }
+    }
+    return $products;
+}
+
+function wcg_get_user_products_removed_from_cart_cb( $user, $field_name, $request ) {
+    $userId = 'user_' . $user['id'];
+    $field = get_field( $field_name, $userId );
+    $products = array();
+    if ( have_rows( $field_name, $userId ) ) {
+        while ( have_rows( $field_name, $userId ) ) {
+            the_row();
+            $products[] = array(
+                get_sub_field( "product_id" ),
+                get_sub_field( "product_name" ),
+                get_sub_field( "date_removed" )
             );
         }
     }
@@ -631,7 +683,7 @@ function wcg_get_customer_id_by_coupon_code( $coupon_code = null ) {
     } elseif ( $coupon_code == null && isset( $_COOKIE[ WCG_COOKIE_CODE ] )) {
         $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
     }
-    $user_id = substr( $coupon_code, strrpos( $coupon_code, '*') + 1 );
+    $user_id = substr( $coupon_code, strrpos( $coupon_code, '-') + 1 );
     return $user_id;
 }
 
