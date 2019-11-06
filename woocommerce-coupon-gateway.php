@@ -1,13 +1,13 @@
 <?php
 
-/*
-Plugin Name: WooCommerce Coupon Gateway
-Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
-Version: 1.4.0
-Author: DarnGood LLC
-Text Domain: woocommerce-coupon-gateway
-License: GPLv2
-*/
+/**
+ * Plugin Name: WooCommerce Coupon Gateway
+ * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
+ * Version: 1.4.0
+ * Author: DarnGood LLC
+ * Text Domain: woocommerce-coupon-gateway
+ * License: GPLv2
+ */
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -307,9 +307,10 @@ function wcg_api_init() {
         'phone',
         'coupon_code',
         'coupon_status',
+        'active_coupons',
+        'past_coupons',
         'products_viewed',
         'products_removed_from_cart',
-        'past_coupons',
         'purchase_history'
     );
 
@@ -338,13 +339,14 @@ function wcg_api_init() {
                     )
                 );
             break;
+            case 'active_coupons':
             case 'past_coupons':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
                     $field,
                     array(
-                        'get_callback'      => 'wcg_get_user_past_coupons_cb',
+                        'get_callback'      => 'wcg_get_user_active_or_past_coupons_cb',
                         'update_callback'   => null
                     )
                 );
@@ -411,6 +413,7 @@ function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
     }
 }
 
+
 function wcg_check_able_to_assign_coupon( $userId ) {
     $user = 'user_' . $userId;
     if ( trim( get_field( 'coupon_code', $user ) ) == "" ) return true;
@@ -476,9 +479,9 @@ function wcg_get_user_products_viewed_cb( $user, $field_name, $request ) {
         while ( have_rows( $field_name, $userId ) ) {
             the_row();
             $products[] = array(
-                get_sub_field( "product_id"),
-                get_sub_field( "product_name"),
-                get_sub_field( "date_viewed")
+                'product_id' => get_sub_field( "product_id"),
+                'product_name' => get_sub_field( "product_name"),
+                'date_viewed' => get_sub_field( "date_viewed")
             );
         }
     }
@@ -493,11 +496,9 @@ function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
         while ( have_rows( $field_name, $userId ) ) {
             the_row();
             $products[] = array(
-                get_sub_field( "product_id" ),
-                get_sub_field( "product_name" ),
-                get_sub_field( "order_id" )
-                // get_sub_field( "product_description"),
-                // get_sub_field( "date_purchased")
+                'product_id' => get_sub_field( "product_id" ),
+                'product_name' => get_sub_field( "product_name" ),
+                'order_id' => get_sub_field( "order_id" )
             );
         }
     }
@@ -512,25 +513,26 @@ function wcg_get_user_products_removed_from_cart_cb( $user, $field_name, $reques
         while ( have_rows( $field_name, $userId ) ) {
             the_row();
             $products[] = array(
-                get_sub_field( "product_id" ),
-                get_sub_field( "product_name" ),
-                get_sub_field( "date_removed" )
+                'product_id' => get_sub_field( "product_id" ),
+                'product_name' => get_sub_field( "product_name" ),
+                'date_removed' => get_sub_field( "date_removed" )
             );
         }
     }
     return $products;
 }
 
-function wcg_get_user_past_coupons_cb( $user, $field_name, $request ) {
+function wcg_get_user_active_or_past_coupons_cb( $user, $field_name, $request ) {
     $userId = 'user_' . $user['id'];
-    $field = get_field( $field_name, $userId );
+    // $field = get_field( $field_name, $userId );
     $products = array();
     if ( have_rows( $field_name, $userId ) ) {
         while ( have_rows( $field_name, $userId ) ) {
             the_row();
             $products[] = array(
-                get_sub_field( "coupon_code"),
-                get_sub_field( "coupon_status"),
+                'coupon_code' => get_sub_field( "coupon_code"),
+                'coupon_status' => get_sub_field( "coupon_status"),
+                'vehicle_id' => get_sub_field( "vehicle_id"),
             );
         }
     }
