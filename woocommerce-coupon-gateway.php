@@ -340,6 +340,16 @@ function wcg_api_init() {
                 );
             break;
             case 'active_coupons':
+                // Field does not support UPDATE, only GET
+                register_rest_field(
+                    'user',
+                    $field,
+                    array(
+                        'get_callback'      => 'wcg_get_user_active_or_past_coupons_cb',
+                        'update_callback'   => null
+                    )
+                );
+            break;
             case 'past_coupons':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
@@ -414,8 +424,8 @@ function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
 }
 
 
-function wcg_check_able_to_assign_coupon( $userId ) {
-    $user = 'user_' . $userId;
+function wcg_check_able_to_assign_coupon( $userID ) {
+    $user = 'user_' . $userID;
     if ( trim( get_field( 'coupon_code', $user ) ) == "" ) return true;
     return false;
 }
@@ -472,11 +482,11 @@ function generate_coupon( $email, $user_id ) {
 
 function wcg_get_user_products_viewed_cb( $user, $field_name, $request ) {
     //$products = get_user_meta( $user['id'], $field_name, false );
-    $userId = 'user_' . $user['id'];
-    $field = get_field( $field_name, $userId );
+    $userID = 'user_' . $user['id'];
+    $field = get_field( $field_name, $userID );
     $products = array();
-    if ( have_rows( $field_name, $userId ) ) {
-        while ( have_rows( $field_name, $userId ) ) {
+    if ( have_rows( $field_name, $userID ) ) {
+        while ( have_rows( $field_name, $userID ) ) {
             the_row();
             $products[] = array(
                 'product_id' => get_sub_field( "product_id"),
@@ -489,11 +499,11 @@ function wcg_get_user_products_viewed_cb( $user, $field_name, $request ) {
 }
 
 function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
-    $userId = 'user_' . $user['id'];
-    $field = get_field( $field_name, $userId );
+    $userID = 'user_' . $user['id'];
+    $field = get_field( $field_name, $userID );
     $products = array();
-    if ( have_rows( $field_name, $userId ) ) {
-        while ( have_rows( $field_name, $userId ) ) {
+    if ( have_rows( $field_name, $userID ) ) {
+        while ( have_rows( $field_name, $userID ) ) {
             the_row();
             $products[] = array(
                 'product_id' => get_sub_field( "product_id" ),
@@ -506,11 +516,11 @@ function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
 }
 
 function wcg_get_user_products_removed_from_cart_cb( $user, $field_name, $request ) {
-    $userId = 'user_' . $user['id'];
-    $field = get_field( $field_name, $userId );
+    $userID = 'user_' . $user['id'];
+    $field = get_field( $field_name, $userID );
     $products = array();
-    if ( have_rows( $field_name, $userId ) ) {
-        while ( have_rows( $field_name, $userId ) ) {
+    if ( have_rows( $field_name, $userID ) ) {
+        while ( have_rows( $field_name, $userID ) ) {
             the_row();
             $products[] = array(
                 'product_id' => get_sub_field( "product_id" ),
@@ -523,16 +533,16 @@ function wcg_get_user_products_removed_from_cart_cb( $user, $field_name, $reques
 }
 
 function wcg_get_user_active_or_past_coupons_cb( $user, $field_name, $request ) {
-    $userId = 'user_' . $user['id'];
-    // $field = get_field( $field_name, $userId );
+    $userID = 'user_' . $user['id'];
+    // $field = get_field( $field_name, $userID );
     $products = array();
-    if ( have_rows( $field_name, $userId ) ) {
-        while ( have_rows( $field_name, $userId ) ) {
+    if ( have_rows( $field_name, $userID ) ) {
+        while ( have_rows( $field_name, $userID ) ) {
             the_row();
             $products[] = array(
-                'coupon_code' => get_sub_field( "coupon_code"),
-                'coupon_status' => get_sub_field( "coupon_status"),
-                'vehicle_id' => get_sub_field( "vehicle_id"),
+                'coupon_code' => get_sub_field("coupon_code"),
+                'coupon_status' => get_sub_field("coupon_status"),
+                'vehicle_id' => get_sub_field("vehicle_id"),
             );
         }
     }
@@ -541,34 +551,88 @@ function wcg_get_user_active_or_past_coupons_cb( $user, $field_name, $request ) 
 
 
 function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
+    $userID = 'user_'. $user->ID;
     // delivered -> move to past coupons with status
     // canceled -> move to past coupons with status
     // pending - just update
     // confirmed - just update
     // registered - just update
-    switch ( $value ) : 
+    $new_status = $value['coupon_status'];
+    $coupon_code = $value['coupon_code'];
+    $vechicle_id = $value['vehicle_id'];
+    $field_name = null;
+    $field_value = null;
+    $row_number_to_change = 0;
+    $row_to_change = null;
+    //$active_coupons = get_field('active_coupons', $userID);
+
+    if (!empty($coupon_code)) {
+        // if coupon_code is supplied, find row by coupon_code
+        $field_name = 'coupon_code';
+        $field_value = $coupon_code;
+    } elseif (!empty($vechicle_id)) {
+        // else if vehicle_id is supplied, find row by vehicle_id
+        $field_name = 'vehicle_id';
+        $field_value = $vechicle_id;
+    } else {
+        // return error
+        return new WP_ERROR( 'missing_coupon_identifier', 'You did not specify the coupon that needs updating. Please provide either the coupon_code or vehicle_id.' );
+    }
+
+    // determine which row number needs updating
+    $row_number = 1;
+    if (have_rows('active_coupons', $userID)) {
+        while(have_rows('active_coupons', $userID)) {
+            the_row();
+            if (get_sub_field($field_name) == $field_value) {
+                $row_number_to_change = $row_number;
+                // $row_to_change = get_row();
+                $coupon_code = get_sub_field('coupon_code');
+                $vechicle_id = get_sub_field('vehicle_id');
+                break;
+            } 
+            $row_number++;
+        }
+    }
+    // throw error if there's no row to change
+    if ($row_number_to_change == 0) {
+        return new WP_ERROR( 'coupon_not_found', 'Could not locate this coupon for this user.' );
+    }
+
+    switch ( $new_status ) : 
         case "delivered":
         case "canceled":
         case "cancelled":
-            $userID = 'user_'. $user->ID;
-            $coupon_code = get_field( 'coupon_code', $userID );
-            if ( trim($coupon_code) == "" ) {
-                return new WP_ERROR( 'no_coupon_code', 'The user does not have an active coupon code to update.' );
-            }
+            // remove from active_coupons
+            delete_row('active_coupons', $row_number_to_change, $userID);
+
+            // add to past_coupons with new status
+            // $coupon_code = get_field( 'coupon_code', $userID );
+            // if ( trim($coupon_code) == "" ) {
+            //     return new WP_ERROR( 'no_coupon_code', 'The user does not have an active coupon code to update.' );
+            // }
+
             // update past_coupons
+            // $row = $row_to_change;
             $row = array(
                 'coupon_code' => $coupon_code,
-                'coupon_status' => $value
-            );
+                'coupon_status' => $new_status,
+                'vehicle_id' => $vechicle_id
+            ); 
             add_row( 'past_coupons', $row, $userID );
 
             // empty coupon_code & coupon_status
-            update_field( 'coupon_code', '', $userID );
-            update_field( 'coupon_status', '', $userID );
+            // update_field( 'coupon_code', '', $userID );
+            // update_field( 'coupon_status', '', $userID );
             
         break;
         default: 
-            update_user_meta( $user->ID, $field_name, $value );
+            $row = array(
+                'coupon_code' => $coupon_code,
+                'coupon_status' => $new_status,
+                'vehicle_id' => $vechicle_id
+            ); 
+            update_row('active_coupons', $row_number_to_change, $row, $userID);
         break;
     endswitch;
 

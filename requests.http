@@ -158,7 +158,11 @@ Authorization: Bearer {{token}}
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
     //"coupon_code":  "{{coupon_code}}",
-    "coupon_status": "delivered"
+    "coupon_status": {
+        "vehicle_id": "nonsensevinnumber",
+        //"coupon_code": "nonsensecode",
+        "coupon_status": "whawutt"
+    }
 }
 
 ##########################################
