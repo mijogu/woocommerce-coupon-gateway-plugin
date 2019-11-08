@@ -16,19 +16,19 @@
 # @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9ibmNhcnZhbmFkZXYud3BlbmdpbmUuY29tIiwiaWF0IjoxNTcxNjc5NTEyLCJuYmYiOjE1NzE2Nzk1MTIsImV4cCI6MTU3MjI4NDMxMiwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMzM0MSJ9fX0.SbH8RBT0Yv82tl9U0vfXke37Cy70JROiYULpSCfYwNw
 
 @username = tittles
-@email = tittles2@gmail.com
+@email = tittles3@gmail.com
 @name = API TEST
 @first_name = Firstname2
 @last_name = Lastname2
 @address_1 = 512 Main Blvd
 @address_2 = apt B
-@city = Phila
-@state = PA
+@city = New Brunswick
+@state = NJ
 @zip = 19106
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-@userid = 3351
+@userid = 3352
 @carvanauid = C2654133-19A1-4AF8-ABEA-2D3920F65B28
 
 
@@ -127,7 +127,10 @@ Authorization: Bearer {{token}}
     "state":        "{{state}}",
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
-    "coupon_code":  "{{coupon_code}}"
+    "coupon_edit": {
+        "coupon_status": "createcoupon",
+        "vehicle_id": "12345"
+    }
 }
 
 ##########################################
@@ -137,10 +140,22 @@ Authorization: Bearer {{token}}
     # However, you need to supply the USER ID in the url in order to 
     # update the correct user.
 
-    # Updating "coupon_status" to "delivered" or "canceled" will move
-    # the active coupon into the past_coupons array, and will allow
-    # a new coupon to be created in a subsequent update call. Updating 
-    # "coupon_status" to anything else will update the field. 
+    # Managing coupons is handled through the "coupon_edit" field by
+    # supplying an array of the following optional fields:
+        # 'coupon_code'
+        # 'coupon_status'
+        # 'vehicle_id'
+
+    # To create a coupon "coupon_status" must be set to "createcoupon" 
+    # and you can optionally provide a "vehicle_id".
+
+    # To update a coupon, you can provide either the "coupon_code" OR the
+    # "vehicle_id" to specify the coupon, as well as the "coupon_status".
+
+    # Updating a coupon's "coupon_status" to "delivered" or "canceled" will move
+    # the active coupon into past_coupons. Updating 
+    # "coupon_status" to anything else will simply update to that status and
+    # keep the coupon active. 
 
     # Sample endpoint: POST http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users/100
 
@@ -157,11 +172,10 @@ Authorization: Bearer {{token}}
     "state":        "{{state}}",
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
-    //"coupon_code":  "{{coupon_code}}",
-    "coupon_status": {
-        "vehicle_id": "nonsensevinnumber",
-        //"coupon_code": "nonsensecode",
-        "coupon_status": "whawutt"
+    "coupon_edit": {
+        //"vehicle_id": "12345",
+        "coupon_code": "f606dae8fb461b6bcf53347c671af416-1573232392-3352",
+        "coupon_status": "updatedstatus"
     }
 }
 
