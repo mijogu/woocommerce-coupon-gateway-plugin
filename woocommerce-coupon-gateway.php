@@ -34,15 +34,15 @@ function check_query_string_coupon_code() {
         
     global $current_user;
     $cookie_code = WCG_COOKIE_CODE;
-    $cookie_name = WCG_COOKIE_NAME;
+    // $cookie_name = WCG_COOKIE_NAME;
 
     $coupon_code = '';
-    $thank_you_page = get_thank_you_page();
+    // $thank_you_page = get_thank_you_page();
 
-    $first_name = trim($_GET['fname']);
-    if ( !empty( $first_name ) ) {
-        setcookie( $cookie_name, $first_name);
-    }
+    // $first_name = trim($_GET['fname']);
+    // if ( !empty( $first_name ) ) {
+    //     setcookie( $cookie_name, $first_name);
+    // }
 
     // if user is admin, allow thru to site
     if ( in_array( 'administrator', $current_user->roles) 
@@ -156,17 +156,36 @@ add_action( 'woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
 function wcg_mark_coupon_used( $order_id ) {
     $order = new WC_Order( $order_id );
     $order_items = $order->get_items();
-    // $item = $order_items[0];
-    //$item = $order->get_item();
 
     $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
     $order->apply_coupon( $coupon_code );
     output_testing_info( "Coupon '". $coupon_code. "' has been used!" );
 
     $userID = wcg_get_customer_id_by_coupon_code( $coupon_code );
-    $user = 'user_' . $userID;
+    // $user = 'user_' . $userID;
+
+    $row_data = wcg_get_active_coupon_data($coupon_code, '', $userID);
+    if (is_wp_error($row_data)) return $row_data;
+
+    $row_number = $row_data['row_number'];
+
+    $row_data = array(
+        //'coupon_code' => $coupon_code,
+        'coupon_status' => 'pending'
+    );
+    // wcg_update_active_coupon($row_number, $row_data, $userID);
+    update_row('active_coupons', $row_number, $row_data, 'user_3351');
+
     // change coupon_status to pending
-    update_field( 'coupon_status', 'pending', $user );
+    // update_field( 'coupon_status', 'pending', $user );
+
+    // check if user changed their default address
+    $order_address = $order->get_address('shipping');
+    $address_changed = '';
+    if (wcg_was_address_changed($order_address, $userID)) {
+        $address_changed = 'yes';
+    }
+
     // add product to purchase history
     // there should only be 1 product, but WooCommerece wants us to
     // use the loop regardless. 
@@ -174,10 +193,78 @@ function wcg_mark_coupon_used( $order_id ) {
         $row = array(
             'product_id' => $item->get_product_id(),
             'product_name' => $item->get_name(),
-            'order_id' => $order_id
+            'order_id' => $order_id,
+            'address_changed' => $address_changed
         );
-        add_row( 'purchase_history', $row, $user );
+        add_row( 'purchase_history', $row, "user_".$userID );
     }
+}
+
+function wcg_was_address_changed($order_address, $user_id) {
+
+    if (
+        $order_address['address_1'] != get_field('address_1', "user_$user_id")
+        || $order_address['address_2'] != get_field('address_2', "user_$user_id")
+        || $order_address['city'] != get_field('city', "user_$user_id") 
+        || $order_address['state'] != get_field('state', "user_$user_id")
+        || $order_address['postcode'] != get_field('zip', "user_$user_id")
+    ) {
+        return true;
+    }
+    return false;
+
+}
+
+// Get the row number of the active coupon for the user
+// By default, will search by coupon_code
+// else it will search by vehicle_id. 
+// Returns all current data for coupon, including the row_number.
+function wcg_get_active_coupon_data($coupon_code, $vehicle_id, $user_id) {
+    
+    $field_name = null;
+    $field_value = null;
+
+    if (!empty($coupon_code)) {
+        // if coupon_code is supplied, find row by coupon_code
+        $field_name = 'coupon_code';
+        $field_value = $coupon_code;
+    } elseif (!empty($vehicle_id)) {
+        // else if vehicle_id is supplied, find row by vehicle_id
+        $field_name = 'vehicle_id';
+        $field_value = $vehicle_id;
+    } else {
+        // return error
+        return new WP_ERROR( 'missing_coupon_identifier', 'You did not specify the coupon that needs updating. Please provide either the coupon_code or vehicle_id.' );
+        //throw new \Exception('You did not specify the coupon that needs updating. Please provide either the coupon_code or vehicle_id.');
+    }
+    
+    $row_number = 0;
+    if (have_rows('active_coupons', "user_$user_id")) {
+        while(have_rows('active_coupons', "user_$user_id")) {
+            the_row();
+            // $my_row = get_row();
+            if (get_sub_field($field_name) == $field_value) {
+                $row_number = get_row_index();
+                $coupon_code = get_sub_field('coupon_code');
+                $vehicle_id = get_sub_field('vehicle_id');
+                $coupon_status = get_sub_field('coupon_status');
+                break;
+            } 
+        }
+    }    
+
+    // throw error if there's no row to change
+    if ($row_number == 0) {
+        return new WP_ERROR( 'coupon_not_found', 'Could not locate this coupon for this user.' );
+        // throw new \Exception( 'Could not locate this coupon for this user.');
+    }
+
+    return array(
+        'row_number' => $row_number,
+        'coupon_code' => $coupon_code,
+        'coupon_status' => $coupon_status,
+        'vehicle_id' => $vehicle_id
+    );
 }
 
 // Add "gift review" section before checkout
@@ -305,8 +392,8 @@ function wcg_api_init() {
         'state',
         'zip',
         'phone',
-        'coupon_code',
-        'coupon_status',
+        //'coupon_code',
+        'coupon_edit',
         'active_coupons',
         'past_coupons',
         'products_viewed',
@@ -316,17 +403,18 @@ function wcg_api_init() {
 
     foreach ( $custom_meta_fields as $field ) {
         switch ($field) :
-            case 'coupon_code':
-                // Field has custom UPDATE callback
-                register_rest_field(
-                    'user',
-                    $field,
-                    array(
-                        'get_callback'      => 'wcg_get_usermeta_cb',
-                        'update_callback'   => 'wcg_update_coupon_code_cb'
-                    )
-                );
-            break;
+            // case 'coupon_code':
+            //     // Field has custom UPDATE callback
+            //     register_rest_field(
+            //         'user',
+            //         $field,
+            //         array(
+            //             'get_callback'      => 'wcg_get_usermeta_cb',
+            //             'update_callback'   => 'wcg_update_coupon_code_cb'
+            //             // 'update_callback'   => null
+            //         )
+            //     );
+            // break;
             case 'products_viewed':
                 // "products_viewed" needs a specific get_callback
                 // Field does not support UPDATE, only GET
@@ -383,12 +471,12 @@ function wcg_api_init() {
                     )
                 );
                 break;
-            case 'coupon_status':
+            case 'coupon_edit':
                 register_rest_field(
                     'user',
                     $field,
                     array(
-                        'get_callback'      => 'wcg_get_usermeta_cb',
+                        'get_callback'      => null,
                         'update_callback'   => 'wcg_update_coupon_status_cb'
                     )
                 );
@@ -412,7 +500,8 @@ function wcg_api_init() {
 function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
     if ( $value != 'createcoupon' ) {
         return;
-    } elseif ( wcg_check_able_to_assign_coupon( $user->ID ) ) {
+    // } elseif ( wcg_check_able_to_assign_coupon( $user->ID ) ) {
+    } elseif ( true ) {
         $email = $user->data->user_email;
         $value = generate_coupon( $email, $user->ID );
         update_user_meta( $user->ID, 'coupon_status', 'registered' );
@@ -508,7 +597,8 @@ function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
             $products[] = array(
                 'product_id' => get_sub_field( "product_id" ),
                 'product_name' => get_sub_field( "product_name" ),
-                'order_id' => get_sub_field( "order_id" )
+                'order_id' => get_sub_field( "order_id" ),
+                'address_changed' => get_sub_field('address_changed')
             );
         }
     }
@@ -550,8 +640,10 @@ function wcg_get_user_active_or_past_coupons_cb( $user, $field_name, $request ) 
 }
 
 
+// Create Coupon or Update Coupon
 function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
-    $userID = 'user_'. $user->ID;
+
+    // createcoupon 
     // delivered -> move to past coupons with status
     // canceled -> move to past coupons with status
     // pending - just update
@@ -559,82 +651,55 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
     // registered - just update
     $new_status = $value['coupon_status'];
     $coupon_code = $value['coupon_code'];
-    $vechicle_id = $value['vehicle_id'];
-    $field_name = null;
-    $field_value = null;
-    $row_number_to_change = 0;
-    $row_to_change = null;
-    //$active_coupons = get_field('active_coupons', $userID);
+    $vehicle_id = $value['vehicle_id'];
+    
+    if ($new_status == 'createcoupon') { // create a new coupon
 
-    if (!empty($coupon_code)) {
-        // if coupon_code is supplied, find row by coupon_code
-        $field_name = 'coupon_code';
-        $field_value = $coupon_code;
-    } elseif (!empty($vechicle_id)) {
-        // else if vehicle_id is supplied, find row by vehicle_id
-        $field_name = 'vehicle_id';
-        $field_value = $vechicle_id;
-    } else {
-        // return error
-        return new WP_ERROR( 'missing_coupon_identifier', 'You did not specify the coupon that needs updating. Please provide either the coupon_code or vehicle_id.' );
+        $email = $user->data->user_email;
+        $new_code = generate_coupon( $email, $user->ID );
+        $row = array(
+            'coupon_code' => $new_code,
+            'vehicle_id' => $vehicle_id,
+            'coupon_status' => 'registered'
+        );
+        add_row('active_coupons', $row, 'user_'.$user->ID);
+
+    } else { // update an existing coupon   
+
+        $row_data = wcg_get_active_coupon_data($coupon_code, $vehicle_id, $user->ID);
+        if (is_wp_error($row_data)) return $row_data;
+
+        $row_number = $row_data['row_number'];
+
+        $vehicle_id = $vehicle_id == null ? $row_data['vehicle_id'] : $vehicle_id;
+        $coupon_code = $row_data['coupon_code'];
+
+        switch ( $new_status ) : 
+            case "delivered":
+            case "canceled":
+            case "cancelled":
+                // remove from active_coupons
+                delete_row('active_coupons', $row_number, 'user_'.$user->ID);
+
+                // add to past_coupons
+                $row = array(
+                    'coupon_code' => $coupon_code,
+                    'coupon_status' => $new_status,
+                    'vehicle_id' => $vehicle_id
+                ); 
+                add_row( 'past_coupons', $row, 'user_'.$user->ID );
+
+            break;
+            default: 
+                $row = array(
+                    'coupon_code' => $coupon_code,
+                    'coupon_status' => $new_status,
+                    'vehicle_id' => $vehicle_id
+                ); 
+                update_row('active_coupons', $row_number, $row, 'user_'.$user->ID);
+            break;
+        endswitch;
     }
-
-    // determine which row number needs updating
-    $row_number = 1;
-    if (have_rows('active_coupons', $userID)) {
-        while(have_rows('active_coupons', $userID)) {
-            the_row();
-            if (get_sub_field($field_name) == $field_value) {
-                $row_number_to_change = $row_number;
-                // $row_to_change = get_row();
-                $coupon_code = get_sub_field('coupon_code');
-                $vechicle_id = get_sub_field('vehicle_id');
-                break;
-            } 
-            $row_number++;
-        }
-    }
-    // throw error if there's no row to change
-    if ($row_number_to_change == 0) {
-        return new WP_ERROR( 'coupon_not_found', 'Could not locate this coupon for this user.' );
-    }
-
-    switch ( $new_status ) : 
-        case "delivered":
-        case "canceled":
-        case "cancelled":
-            // remove from active_coupons
-            delete_row('active_coupons', $row_number_to_change, $userID);
-
-            // add to past_coupons with new status
-            // $coupon_code = get_field( 'coupon_code', $userID );
-            // if ( trim($coupon_code) == "" ) {
-            //     return new WP_ERROR( 'no_coupon_code', 'The user does not have an active coupon code to update.' );
-            // }
-
-            // update past_coupons
-            // $row = $row_to_change;
-            $row = array(
-                'coupon_code' => $coupon_code,
-                'coupon_status' => $new_status,
-                'vehicle_id' => $vechicle_id
-            ); 
-            add_row( 'past_coupons', $row, $userID );
-
-            // empty coupon_code & coupon_status
-            // update_field( 'coupon_code', '', $userID );
-            // update_field( 'coupon_status', '', $userID );
-            
-        break;
-        default: 
-            $row = array(
-                'coupon_code' => $coupon_code,
-                'coupon_status' => $new_status,
-                'vehicle_id' => $vechicle_id
-            ); 
-            update_row('active_coupons', $row_number_to_change, $row, $userID);
-        break;
-    endswitch;
 
 }
 
@@ -647,7 +712,6 @@ function wcg_update_usermeta_cb( $value, $user, $field_name ) {
 
 
 if ( class_exists('ACF') ) {
-    
     
     // Save ACF fields automatically
     add_filter( 'acf/settings/save_json', function() {
@@ -728,7 +792,7 @@ function wcg_populate_checkout_fields( $input, $key ) {
             return $user_data->user_email;
             break;
 	endswitch;
-    return $fields;
+    // return $fields;
 }
 
 // Get the current user OBJECT by the Coupon Code cookie
@@ -744,10 +808,14 @@ function wcg_get_customer_object_by_coupon_cookie() {
 // Get the current user's ID from the coupon_code parameter.
 // If coupon_code is not supplied, get it from the COOKIE.
 function wcg_get_customer_id_by_coupon_code( $coupon_code = null ) {
-    if ( $coupon_code == null && !isset( $_COOKIE[ WCG_COOKIE_CODE ] )) {
-        return false;
-    } elseif ( $coupon_code == null && isset( $_COOKIE[ WCG_COOKIE_CODE ] )) {
+    if ($coupon_code != null) {
+        $coupon_code = $coupon_code;
+    } elseif (isset($_GET['wcg'])) {
+        $coupon_code = $_GET['wcg'];
+    } elseif ( isset( $_COOKIE[ WCG_COOKIE_CODE ] )) {
         $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
+    } else {
+        return false;
     }
     $user_id = substr( $coupon_code, strrpos( $coupon_code, '-') + 1 );
     return $user_id;
@@ -771,4 +839,23 @@ function wcg_change_terms_per_page( $prepared_args, $request ){
 
     $prepared_args['number'] = $max;
     return $prepared_args;
+}
+
+// Remove unneeded User fields from API response
+add_filter('rest_prepare_user', 'wcg_modify_rest_user_response', 10, 3);
+
+function wcg_modify_rest_user_response($response, $user, $request ) {
+    unset($response->data['coupon_status']);
+    unset($response->data['link']);
+    unset($response->data['description']);
+    unset($response->data['url']);
+    unset($response->data['avatar_urls']);
+    unset($response->data['meta']);
+    unset($response->data['slug']);
+    unset($response->data['locale']);
+    unset($response->data['nickname']);
+    unset($response->data['roles']);
+    unset($response->data['capabilities']);
+    unset($response->data['extra_capabilities']);
+    return $response;
 }
