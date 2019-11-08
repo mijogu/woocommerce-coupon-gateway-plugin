@@ -29,3 +29,12 @@ The plugin assumes that there is a Thank You page located as `example.com/thank-
 - Try using a nonexistent Coupon code, `?wcg=badcode` -- you should get an error. 
 - Use a valid code in the query string again and make a test purchase -- after the Order is complete, you should be directed to a thank you page and should no longer be able to navigate the site.
 - Login as an admin and confirm that the Coupon has been applied to that Order. 
+
+## How to Update to Latest version
+
+- In WordPress, deactivate and delete the current version of the plugin
+- In GitHub, from the Code tab find and click the Releases link
+- Download the source code (zip) for the latest release
+- Optional: when you download the source code and unzip you'll see that the version number is appended to the folder name. This probably won't cause any issues, but you may want to rename the folder without the version number before installing. In that case you'd need to rename, then create a new zip of the renamed folder. The plus side of not renaming is that you should be able to keep the old version installed (but deactivated) while you're testing the new version.
+- In WordPress, upload and activate the new plugin.
+- Boom, you're done.
