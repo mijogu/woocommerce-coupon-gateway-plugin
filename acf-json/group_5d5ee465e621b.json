@@ -136,44 +136,6 @@
             "maxlength": ""
         },
         {
-            "key": "field_5d5ee4ee52750",
-            "label": "coupon code",
-            "name": "coupon_code",
-            "type": "text",
-            "instructions": "To manually create a coupon code for user enter \"createcoupon\" and save. A new coupon code will be generated automatically.",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "default_value": "",
-            "placeholder": "",
-            "prepend": "",
-            "append": "",
-            "maxlength": ""
-        },
-        {
-            "key": "field_5d9cd54cebf10",
-            "label": "coupon status",
-            "name": "coupon_status",
-            "type": "text",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "default_value": "",
-            "maxlength": "",
-            "placeholder": "",
-            "prepend": "",
-            "append": ""
-        },
-        {
             "key": "field_5dc31a02b5f81",
             "label": "active coupons",
             "name": "active_coupons",
@@ -560,6 +522,25 @@
                     "prepend": "",
                     "append": "",
                     "maxlength": ""
+                },
+                {
+                    "key": "field_5dc58056f708a",
+                    "label": "address changed",
+                    "name": "address_changed",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
                 }
             ]
         }
@@ -581,5 +562,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1573067511
+    "modified": 1573232464
 }
