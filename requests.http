@@ -28,7 +28,7 @@
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-@userid = 3352
+@userid = 3351
 @carvanauid = C2654133-19A1-4AF8-ABEA-2D3920F65B28
 
 
@@ -91,7 +91,7 @@ Authorization: Bearer {{token}}
     # The following fields are required:
         # email
         # username -- this should be same as email
-        # password 
+        # password
     # The following fields are optional:
         # first_name 
         # last_name
@@ -173,9 +173,9 @@ Authorization: Bearer {{token}}
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
     "coupon_edit": {
-        //"vehicle_id": "12345",
-        "coupon_code": "f606dae8fb461b6bcf53347c671af416-1573232392-3352",
-        "coupon_status": "updatedstatus"
+        //"vehicle_id": "testvehicileid",
+        "coupon_code": "70b3a9c58ea1a0178237584dc1db1d20-1573241279-3351",
+        "coupon_status": "confirmed"
     }
 }
 
