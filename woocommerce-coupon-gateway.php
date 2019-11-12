@@ -406,13 +406,13 @@ function wcg_api_init() {
                 );
             break;
             case 'coupons':
-                // Field does not support UPDATE, only GET
+                // Update will not allow updating all fields directly
                 register_rest_field(
                     'user',
                     $field,
                     array(
                         'get_callback'      => 'wcg_get_user_coupons_cb',
-                        'update_callback'   => null
+                        'update_callback'   => 'wcg_update_user_coupons_cb'
                     )
                 );
             break;           
@@ -427,7 +427,8 @@ function wcg_api_init() {
                     )
                 );
                 break;
-            case 'coupon_edit':
+            // TODO remove this 
+            /*case 'coupon_edit':
                 register_rest_field(
                     'user',
                     $field,
@@ -436,7 +437,7 @@ function wcg_api_init() {
                         'update_callback'   => 'wcg_update_coupon_status_cb'
                     )
                 );
-            break;
+            break;*/
             default: 
                 register_rest_field( 
                     'user', 
@@ -595,9 +596,8 @@ function wcg_get_user_coupons_cb( $user, $field_name, $request ) {
     return $products;
 }
 
-
 // Create Coupon or Update Coupon
-function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
+function wcg_update_user_coupons_cb( $value, $user, $field_name ) {
 
     // createcoupon 
     // delivered
@@ -608,15 +608,17 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
     $new_status = $value['coupon_status'];
     $coupon_code = $value['coupon_code'];
     $vehicle_id = $value['vehicle_id'];
+    $is_confirmed = $value['is_confirmed'];
     
-    if ($new_status == 'createcoupon') { // create a new coupon
+    if ($coupon_code == 'createcoupon') { // create a new coupon
 
         $email = $user->data->user_email;
         $new_code = generate_coupon( $email, $user->ID );
         $row = array(
             'coupon_code' => $new_code,
             'vehicle_id' => $vehicle_id,
-            'coupon_status' => 'registered'
+            'coupon_status' => 'registered',
+            'is_confirmed' => $is_confirmed
         );
         add_row('coupons', $row, 'user_'.$user->ID);
 
@@ -633,7 +635,8 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
             'coupon_status' => $new_status
         );
         // only include vehicle_id if one was provide (otherwise don't update it)
-        if ($vehicle_id != null) $row['vehicle_id'] = $vehicle_id;
+        if ($vehicle_id != null)    $row['vehicle_id'] = $vehicle_id;
+        if ($is_confirmed != null)  $row['is_confirmed'] = $is_confirmed;
 
         update_row('coupons', $row_number, $row, 'user_'.$user->ID);
     }
