@@ -153,8 +153,9 @@ function output_testing_info( $text ) {
 //
 // And update the coupon_status for the user to 'pending'
 add_action( 'woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
-function wcg_mark_coupon_used( $order_id ) {
-    $order = new WC_Order( $order_id );
+function wcg_mark_coupon_used($order_id)
+{
+    $order = new WC_Order($order_id);
     $order_items = $order->get_items();
 
     $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
@@ -164,7 +165,7 @@ function wcg_mark_coupon_used( $order_id ) {
     $userID = wcg_get_customer_id_by_coupon_code( $coupon_code );
     // $user = 'user_' . $userID;
 
-    $row_data = wcg_get_active_coupon_data($coupon_code, '', $userID);
+    $row_data = wcg_get_coupon_data($coupon_code, '', $userID);
     if (is_wp_error($row_data)) return $row_data;
 
     $row_number = $row_data['row_number'];
@@ -173,8 +174,9 @@ function wcg_mark_coupon_used( $order_id ) {
         //'coupon_code' => $coupon_code,
         'coupon_status' => 'pending'
     );
-    // wcg_update_active_coupon($row_number, $row_data, $userID);
-    update_row('active_coupons', $row_number, $row_data, 'user_3351');
+    // wcg_update_coupon($row_number, $row_data, $userID);
+    // TODO remove hardcoded userid
+    update_row('coupons', $row_number, $row_data, 'user_3351');
 
     // change coupon_status to pending
     // update_field( 'coupon_status', 'pending', $user );
@@ -196,6 +198,7 @@ function wcg_mark_coupon_used( $order_id ) {
             'order_id' => $order_id,
             'address_changed' => $address_changed
         );
+        // TODO save this to coupon instead
         add_row( 'purchase_history', $row, "user_".$userID );
     }
 }
@@ -219,7 +222,7 @@ function wcg_was_address_changed($order_address, $user_id) {
 // By default, will search by coupon_code
 // else it will search by vehicle_id. 
 // Returns all current data for coupon, including the row_number.
-function wcg_get_active_coupon_data($coupon_code, $vehicle_id, $user_id) {
+function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id) {
     
     $field_name = null;
     $field_value = null;
@@ -239,8 +242,8 @@ function wcg_get_active_coupon_data($coupon_code, $vehicle_id, $user_id) {
     }
     
     $row_number = 0;
-    if (have_rows('active_coupons', "user_$user_id")) {
-        while(have_rows('active_coupons', "user_$user_id")) {
+    if (have_rows('coupons', "user_$user_id")) {
+        while(have_rows('coupons', "user_$user_id")) {
             the_row();
             // $my_row = get_row();
             if (get_sub_field($field_name) == $field_value) {
@@ -392,13 +395,10 @@ function wcg_api_init() {
         'state',
         'zip',
         'phone',
-        //'coupon_code',
         'coupon_edit',
-        'active_coupons',
-        'past_coupons',
+        'coupons',
         'products_viewed',
         'products_removed_from_cart',
-        'purchase_history'
     );
 
     foreach ( $custom_meta_fields as $field ) {
@@ -427,29 +427,29 @@ function wcg_api_init() {
                     )
                 );
             break;
-            case 'active_coupons':
+            case 'coupons':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
                     $field,
                     array(
-                        'get_callback'      => 'wcg_get_user_active_or_past_coupons_cb',
+                        'get_callback'      => 'wcg_get_user_coupons_cb',
                         'update_callback'   => null
                     )
                 );
             break;
-            case 'past_coupons':
+            /*case 'past_coupons':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
                     $field,
                     array(
-                        'get_callback'      => 'wcg_get_user_active_or_past_coupons_cb',
+                        'get_callback'      => 'wcg_get_user_coupons_cb',
                         'update_callback'   => null
                     )
                 );
-            break;
-            case 'purchase_history':
+            break;*/
+            /*case 'purchase_history':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
@@ -459,7 +459,7 @@ function wcg_api_init() {
                         'update_callback'   => null
                     )
                 );
-            break;
+            break;*/
             case 'products_removed_from_cart':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
@@ -587,7 +587,7 @@ function wcg_get_user_products_viewed_cb( $user, $field_name, $request ) {
     return $products;
 }
 
-function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
+/*function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
     $userID = 'user_' . $user['id'];
     $field = get_field( $field_name, $userID );
     $products = array();
@@ -603,7 +603,7 @@ function wcg_get_user_purchase_history_cb( $user, $field_name, $request ) {
         }
     }
     return $products;
-}
+}*/
 
 function wcg_get_user_products_removed_from_cart_cb( $user, $field_name, $request ) {
     $userID = 'user_' . $user['id'];
@@ -622,7 +622,7 @@ function wcg_get_user_products_removed_from_cart_cb( $user, $field_name, $reques
     return $products;
 }
 
-function wcg_get_user_active_or_past_coupons_cb( $user, $field_name, $request ) {
+function wcg_get_user_coupons_cb( $user, $field_name, $request ) {
     $userID = 'user_' . $user['id'];
     // $field = get_field( $field_name, $userID );
     $products = array();
@@ -662,11 +662,11 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
             'vehicle_id' => $vehicle_id,
             'coupon_status' => 'registered'
         );
-        add_row('active_coupons', $row, 'user_'.$user->ID);
+        add_row('coupons', $row, 'user_'.$user->ID);
 
     } else { // update an existing coupon   
 
-        $row_data = wcg_get_active_coupon_data($coupon_code, $vehicle_id, $user->ID);
+        $row_data = wcg_get_coupon_data($coupon_code, $vehicle_id, $user->ID);
         if (is_wp_error($row_data)) return $row_data;
 
         $row_number = $row_data['row_number'];
@@ -678,8 +678,8 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
             case "delivered":
             case "canceled":
             case "cancelled":
-                // remove from active_coupons
-                delete_row('active_coupons', $row_number, 'user_'.$user->ID);
+                // remove from coupons
+                delete_row('coupons', $row_number, 'user_'.$user->ID);
 
                 // add to past_coupons
                 $row = array(
@@ -687,6 +687,7 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
                     'coupon_status' => $new_status,
                     'vehicle_id' => $vehicle_id
                 ); 
+                // TODO use new 'coupons' field 
                 add_row( 'past_coupons', $row, 'user_'.$user->ID );
 
             break;
@@ -696,7 +697,7 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
                     'coupon_status' => $new_status,
                     'vehicle_id' => $vehicle_id
                 ); 
-                update_row('active_coupons', $row_number, $row, 'user_'.$user->ID);
+                update_row('coupons', $row_number, $row, 'user_'.$user->ID);
             break;
         endswitch;
     }
