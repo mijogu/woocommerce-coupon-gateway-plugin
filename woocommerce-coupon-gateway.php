@@ -171,36 +171,27 @@ function wcg_mark_coupon_used($order_id)
     $row_number = $row_data['row_number'];
 
     $row_data = array(
-        //'coupon_code' => $coupon_code,
         'coupon_status' => 'pending'
     );
-    // wcg_update_coupon($row_number, $row_data, $userID);
-    // TODO remove hardcoded userid
-    update_row('coupons', $row_number, $row_data, 'user_3351');
-
-    // change coupon_status to pending
-    // update_field( 'coupon_status', 'pending', $user );
 
     // check if user changed their default address
     $order_address = $order->get_address('shipping');
     $address_changed = '';
     if (wcg_was_address_changed($order_address, $userID)) {
-        $address_changed = 'yes';
+        $row_data['is_address_changed'] = 'yes';
     }
 
-    // add product to purchase history
+    // add the purchase information to coupon row
     // there should only be 1 product, but WooCommerece wants us to
     // use the loop regardless. 
     foreach ( $order_items as $item ) {
-        $row = array(
-            'product_id' => $item->get_product_id(),
-            'product_name' => $item->get_name(),
-            'order_id' => $order_id,
-            'address_changed' => $address_changed
-        );
-        // TODO save this to coupon instead
-        add_row( 'purchase_history', $row, "user_".$userID );
+        $row_data['product_id'] = $item->get_product_id();
+        $row_data['product_name'] = $item->get_name();
+        $row_data['order_id'] = $order_id;
+        $row_data['address_changed'] = $address_changed;
     }
+
+    update_row('coupons', $row_number, $row_data, "user_$userID");
 }
 
 function wcg_was_address_changed($order_address, $user_id) {
@@ -403,20 +394,7 @@ function wcg_api_init() {
 
     foreach ( $custom_meta_fields as $field ) {
         switch ($field) :
-            // case 'coupon_code':
-            //     // Field has custom UPDATE callback
-            //     register_rest_field(
-            //         'user',
-            //         $field,
-            //         array(
-            //             'get_callback'      => 'wcg_get_usermeta_cb',
-            //             'update_callback'   => 'wcg_update_coupon_code_cb'
-            //             // 'update_callback'   => null
-            //         )
-            //     );
-            // break;
             case 'products_viewed':
-                // "products_viewed" needs a specific get_callback
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
@@ -437,29 +415,7 @@ function wcg_api_init() {
                         'update_callback'   => null
                     )
                 );
-            break;
-            /*case 'past_coupons':
-                // Field does not support UPDATE, only GET
-                register_rest_field(
-                    'user',
-                    $field,
-                    array(
-                        'get_callback'      => 'wcg_get_user_coupons_cb',
-                        'update_callback'   => null
-                    )
-                );
-            break;*/
-            /*case 'purchase_history':
-                // Field does not support UPDATE, only GET
-                register_rest_field(
-                    'user',
-                    $field,
-                    array(
-                        'get_callback'      => 'wcg_get_user_purchase_history_cb',
-                        'update_callback'   => null
-                    )
-                );
-            break;*/
+            break;           
             case 'products_removed_from_cart':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
@@ -500,7 +456,6 @@ function wcg_api_init() {
 function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
     if ( $value != 'createcoupon' ) {
         return;
-    // } elseif ( wcg_check_able_to_assign_coupon( $user->ID ) ) {
     } elseif ( true ) {
         $email = $user->data->user_email;
         $value = generate_coupon( $email, $user->ID );
@@ -512,7 +467,8 @@ function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
     }
 }
 
-
+// This is outdated. 
+// The original intent was to disallow new coupon codes if user already had one active. 
 function wcg_check_able_to_assign_coupon( $userID ) {
     $user = 'user_' . $userID;
     if ( trim( get_field( 'coupon_code', $user ) ) == "" ) return true;
@@ -644,8 +600,8 @@ function wcg_get_user_coupons_cb( $user, $field_name, $request ) {
 function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
 
     // createcoupon 
-    // delivered -> move to past coupons with status
-    // canceled -> move to past coupons with status
+    // delivered
+    // canceled 
     // pending - just update
     // confirmed - just update
     // registered - just update
@@ -670,36 +626,16 @@ function wcg_update_coupon_status_cb( $value, $user, $field_name ) {
         if (is_wp_error($row_data)) return $row_data;
 
         $row_number = $row_data['row_number'];
-
-        $vehicle_id = $vehicle_id == null ? $row_data['vehicle_id'] : $vehicle_id;
         $coupon_code = $row_data['coupon_code'];
 
-        switch ( $new_status ) : 
-            case "delivered":
-            case "canceled":
-            case "cancelled":
-                // remove from coupons
-                delete_row('coupons', $row_number, 'user_'.$user->ID);
+        $row = array(
+            'coupon_code' => $coupon_code,
+            'coupon_status' => $new_status
+        );
+        // only include vehicle_id if one was provide (otherwise don't update it)
+        if ($vehicle_id != null) $row['vehicle_id'] = $vehicle_id;
 
-                // add to past_coupons
-                $row = array(
-                    'coupon_code' => $coupon_code,
-                    'coupon_status' => $new_status,
-                    'vehicle_id' => $vehicle_id
-                ); 
-                // TODO use new 'coupons' field 
-                add_row( 'past_coupons', $row, 'user_'.$user->ID );
-
-            break;
-            default: 
-                $row = array(
-                    'coupon_code' => $coupon_code,
-                    'coupon_status' => $new_status,
-                    'vehicle_id' => $vehicle_id
-                ); 
-                update_row('coupons', $row_number, $row, 'user_'.$user->ID);
-            break;
-        endswitch;
+        update_row('coupons', $row_number, $row, 'user_'.$user->ID);
     }
 
 }
