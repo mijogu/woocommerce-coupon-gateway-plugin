@@ -137,8 +137,8 @@
         },
         {
             "key": "field_5dc31a02b5f81",
-            "label": "active coupons",
-            "name": "active_coupons",
+            "label": "coupons",
+            "name": "coupons",
             "type": "repeater",
             "instructions": "",
             "required": 0,
@@ -158,6 +158,25 @@
                     "key": "field_5dc31a02b5f82",
                     "label": "coupon code",
                     "name": "coupon_code",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
+                },
+                {
+                    "key": "field_5dcb15dd730e5",
+                    "label": "is confirmed",
+                    "name": "is_confirmed",
                     "type": "text",
                     "instructions": "",
                     "required": 0,
@@ -210,32 +229,11 @@
                     "prepend": "",
                     "append": "",
                     "maxlength": ""
-                }
-            ]
-        },
-        {
-            "key": "field_5d9cd64f2ad4d",
-            "label": "past coupons",
-            "name": "past_coupons",
-            "type": "repeater",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "collapsed": "",
-            "min": 0,
-            "max": 0,
-            "layout": "table",
-            "button_label": "",
-            "sub_fields": [
+                },
                 {
-                    "key": "field_5d9cd68a2ad4e",
-                    "label": "coupon code",
-                    "name": "coupon_code",
+                    "key": "field_5dcb17d3730e7",
+                    "label": "order id",
+                    "name": "order_id",
                     "type": "text",
                     "instructions": "",
                     "required": 0,
@@ -252,9 +250,9 @@
                     "maxlength": ""
                 },
                 {
-                    "key": "field_5d9cd6952ad4f",
-                    "label": "coupon status",
-                    "name": "coupon_status",
+                    "key": "field_5dcb17de730e8",
+                    "label": "product id",
+                    "name": "product_id",
                     "type": "text",
                     "instructions": "",
                     "required": 0,
@@ -271,9 +269,47 @@
                     "maxlength": ""
                 },
                 {
-                    "key": "field_5dc31a74b5f85",
-                    "label": "vehicle id",
-                    "name": "vehicle_id",
+                    "key": "field_5dcb17f293dfa",
+                    "label": "product name",
+                    "name": "product_name",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
+                },
+                {
+                    "key": "field_5dcb17fe93dfb",
+                    "label": "is address changed",
+                    "name": "is_address_changed",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
+                },
+                {
+                    "key": "field_5dcb182593dfc",
+                    "label": "date last updated",
+                    "name": "date_last_updated",
                     "type": "text",
                     "instructions": "",
                     "required": 0,
@@ -446,103 +482,6 @@
                     "first_day": 1
                 }
             ]
-        },
-        {
-            "key": "field_5d9cd6dd2ad50",
-            "label": "purchase history",
-            "name": "purchase_history",
-            "type": "repeater",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "collapsed": "",
-            "min": 0,
-            "max": 0,
-            "layout": "table",
-            "button_label": "",
-            "sub_fields": [
-                {
-                    "key": "field_5d9cd70e2ad52",
-                    "label": "product id",
-                    "name": "product_id",
-                    "type": "text",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": ""
-                },
-                {
-                    "key": "field_5d9cd6eb2ad51",
-                    "label": "product name",
-                    "name": "product_name",
-                    "type": "text",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": ""
-                },
-                {
-                    "key": "field_5d9cd72d2ad54",
-                    "label": "order id",
-                    "name": "order_id",
-                    "type": "text",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": ""
-                },
-                {
-                    "key": "field_5dc58056f708a",
-                    "label": "address changed",
-                    "name": "address_changed",
-                    "type": "text",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": ""
-                }
-            ]
         }
     ],
     "location": [
@@ -562,5 +501,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1573232464
+    "modified": 1573591363
 }
