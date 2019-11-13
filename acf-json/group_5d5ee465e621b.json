@@ -140,7 +140,7 @@
             "label": "coupons",
             "name": "coupons",
             "type": "repeater",
-            "instructions": "",
+            "instructions": "To manually create a new coupon code for user: click \"Add Row\" and in the \"coupon code\" field enter \"createcoupon\" then \"Update User\" at the bottom of the page. A new coupon code will be generated automatically.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -310,7 +310,7 @@
                     "key": "field_5dcb182593dfc",
                     "label": "date last updated",
                     "name": "date_last_updated",
-                    "type": "text",
+                    "type": "date_time_picker",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
@@ -319,11 +319,9 @@
                         "class": "",
                         "id": ""
                     },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": ""
+                    "display_format": "d\/m\/Y g:i a",
+                    "return_format": "d\/m\/Y g:i a",
+                    "first_day": 1
                 }
             ]
         },
@@ -501,5 +499,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1573591363
+    "modified": 1573668205
 }
