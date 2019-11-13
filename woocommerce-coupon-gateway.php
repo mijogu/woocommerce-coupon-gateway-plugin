@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce Coupon Gateway
  * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
- * Version: 1.7.0
+ * Version: 1.7.1
  * Author: DarnGood LLC
  * Text Domain: woocommerce-coupon-gateway
  * License: GPLv2
@@ -53,7 +53,7 @@ function check_query_string_coupon_code() {
         ) {
         output_testing_info( 'you are authorized');
         //return;
-    } else if ( trim($_GET['wcg']) != "" ) {
+    } else if (array_key_exists('wcg', $_GET)) {
         $coupon_code = trim($_GET['wcg']);
         
         // Check if the coupon code is valid
@@ -100,7 +100,7 @@ function get_oops_page() {
 }
 
 function wcg_check_page_access() {
-    $url_parts = explode('?', $_SERVER[ REQUEST_URI ], 2);
+    $url_parts = explode('?', $_SERVER[ 'REQUEST_URI' ], 2);
 
     if ( in_array( $url_parts[0], [ '/', '/delivery-information'] ) 
         || strpos( $url_parts[0], '/product') == 0
@@ -124,7 +124,7 @@ function wcg_check_code_validity($coupon_code) {
         $oops_page = get_oops_page();
         wp_redirect( site_url( "/$oops_page/" ) );
         exit;
-    } else if ( $coupon_data[id] == 0 ) {
+    } else if ( $coupon_data['id'] == 0 ) {
         // Code was given, but is invalid/incomplete
         $oops_page = get_oops_page();
         wp_redirect( site_url( "/$oops_page/" ) );
@@ -171,7 +171,8 @@ function wcg_mark_coupon_used($order_id)
     $row_number = $row_data['row_number'];
 
     $row_data = array(
-        'coupon_status' => 'pending'
+        'coupon_status' => 'pending',
+        'date_last_updated' => date('Y-m-d H:i:s')
     );
 
     // check if user changed their default address
@@ -308,7 +309,8 @@ function wcg_rename_place_order_button() {
 // Empty cart before adding new item
 add_filter( 'woocommerce_add_to_cart_validation', 'wcg_remove_cart_item_before_add_to_cart', 20, 3 );
 function wcg_remove_cart_item_before_add_to_cart( $passed, $product_id, $quantity ) {
-    if( ! WC()->cart->is_empty())
+    if(!WC()->cart->is_empty()) {
+        $user_id = wcg_get_customer_id_by_coupon_code();
         $items = WC()->cart->get_cart_contents();
         foreach ( $items as $item ) {
             $product = wc_get_product( $item['product_id'] );
@@ -318,9 +320,10 @@ function wcg_remove_cart_item_before_add_to_cart( $passed, $product_id, $quantit
                 'product_name'  => $product->get_name(),
                 'date_removed'  => date('Y-m-d H:i:s')
             );
-            add_row( 'products_removed_from_cart', $row, 'user_3351' );
+            add_row( 'products_removed_from_cart', $row, "user_$user_id" );
         }
         WC()->cart->empty_cart();
+    }
     return $passed;
 }
 
@@ -437,22 +440,6 @@ function wcg_api_init() {
                 );
             break;
         endswitch;
-    }
-}
-
-// The value must be set to 'createcoupon' in order for a 
-// coupon to be generated and assigned to the user
-function wcg_update_coupon_code_cb( $value, $user, $field_name ) {
-    if ( $value != 'createcoupon' ) {
-        return;
-    } elseif ( true ) {
-        $email = $user->data->user_email;
-        $value = generate_coupon( $email, $user->ID );
-        update_user_meta( $user->ID, 'coupon_status', 'registered' );
-        update_user_meta( $user->ID, 'coupon_code', $value );
-        return;
-    } else {
-        return new WP_Error( 'coupon_not_allowed', "Unable to create a new coupon code for this user at this time." );
     }
 }
 
