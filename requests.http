@@ -95,19 +95,21 @@ Authorization: Bearer {{token}}
     # The following fields are optional:
         # first_name 
         # last_name
+        # carvana_uid
         # address_1
         # address_2
         # city
         # state
         # zip
         # phone
-        # coupon_code
-    # NOTE: 
-        # Currently, a user is only able to have 1 coupon code.
-        # In order to assign a Coupon Code to a user, you will need 
-        # to supply the "coupon_code" parameter with a value of "createcoupon".
-        # We will be refactoring how Coupon Codes are assigned to users to allow
-        # users to have multiple Coupon Codes.
+        # coupons 
+
+    # To create a coupon with this call, supply the 'coupons' field with an array
+    # of parameters. 'coupon_code' must be set to "createcoupon". The following parameters 
+    # are optional:
+        # coupon_status (by default this will be set to 'registered' unless specified)
+        # vehicle_id
+        # is_confirmed   
 
     # Sample endpoint: POST http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users
     
@@ -127,9 +129,11 @@ Authorization: Bearer {{token}}
     "state":        "{{state}}",
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
-    "coupon_edit": {
-        "coupon_status": "createcoupon",
-        "vehicle_id": "12345"
+    "coupons": {
+        //"coupon_status": "registered",
+        //"is_confirmed": "yes",
+        //"vehicle_id": "12345"
+        "coupon_code": "createcoupon"
     }
 }
 
@@ -140,22 +144,24 @@ Authorization: Bearer {{token}}
     # However, you need to supply the USER ID in the url in order to 
     # update the correct user.
 
-    # Managing coupons is handled through the "coupon_edit" field by
+    # Managing coupons is handled through the "coupons" field by
     # supplying an array of the following optional fields:
         # 'coupon_code'
         # 'coupon_status'
+        # 'is_confirmed'
         # 'vehicle_id'
 
-    # To create a coupon "coupon_status" must be set to "createcoupon" 
-    # and you can optionally provide a "vehicle_id".
+    # To create a coupon, "coupon_code" must be set to "createcoupon".
+    # To edit a coupon, "coupon_code" must be set to a valid coupon code.
 
-    # To update a coupon, you can provide either the "coupon_code" OR the
-    # "vehicle_id" to specify the coupon, as well as the "coupon_status".
+    # The following parameters are optional when creating or updating a coupon:
+        # coupon_status (when creating, this will be set to 'registered' unless specified)
+        # vehicle_id
+        # is_confirmed
 
-    # Updating a coupon's "coupon_status" to "delivered" or "canceled" will move
-    # the active coupon into past_coupons. Updating 
-    # "coupon_status" to anything else will simply update to that status and
-    # keep the coupon active. 
+    # Use the "is_confirmed" field to track that a coupon is "confirmed" from 
+    # Carvana's standpoint. This will allow us to retain the "confirmed" state regardless
+    # of subsequent status changes. 
 
     # Sample endpoint: POST http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users/100
 
@@ -172,10 +178,11 @@ Authorization: Bearer {{token}}
     "state":        "{{state}}",
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
-    "coupon_edit": {
-        //"vehicle_id": "testvehicileid",
-        "coupon_code": "70b3a9c58ea1a0178237584dc1db1d20-1573241279-3351",
-        "coupon_status": "confirmed"
+    "coupons": {
+        "coupon_status": "canceled",
+        "vehicle_id": "updatedid",
+        "is_confirmed": "of course",
+        "coupon_code": "70b3a9c58ea1a0178237584dc1db1d20-1573595144-3351"
     }
 }
 
