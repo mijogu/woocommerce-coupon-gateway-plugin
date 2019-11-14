@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce Coupon Gateway
  * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
- * Version: 1.7.1
+ * Version: 1.7.2
  * Author: DarnGood LLC
  * Text Domain: woocommerce-coupon-gateway
  * License: GPLv2
@@ -540,7 +540,8 @@ function wcg_get_user_products_removed_from_cart_cb($user, $field_name, $request
     return $products;
 }
 
-function wcg_get_user_coupons_cb($user, $field_name, $request){
+function wcg_get_user_coupons_cb($user, $field_name, $request)
+{
     $userID = 'user_' . $user['id'];
     // $field = get_field($field_name, $userID);
     $coupons = array();
@@ -565,7 +566,8 @@ function wcg_get_user_coupons_cb($user, $field_name, $request){
 }
 
 // Create Coupon or Update Coupon
-function wcg_update_user_coupons_cb($value, $user, $field_name){
+function wcg_update_user_coupons_cb($value, $user, $field_name)
+{
 
     // createcoupon 
     // delivered
@@ -609,10 +611,12 @@ function wcg_update_user_coupons_cb($value, $user, $field_name){
     }
 }
 
-function wcg_get_usermeta_cb($user, $field_name, $request){
+function wcg_get_usermeta_cb($user, $field_name, $request)
+{
     return get_user_meta($user['id'], $field_name, true);
 }
-function wcg_update_usermeta_cb($value, $user, $field_name){
+function wcg_update_usermeta_cb($value, $user, $field_name)
+{
     return update_user_meta($user->ID, $field_name, $value);
 }
 
@@ -638,7 +642,8 @@ add_action('wp', 'wcg_record_product_page_visit', 10);
         // product_id
         // product_name
         // date_viewed -- Y-m-d H:i:s
-function wcg_record_product_page_visit() {
+function wcg_record_product_page_visit()
+{
     global $post;
 
     // If user views a product page, record the visit.
@@ -651,7 +656,7 @@ function wcg_record_product_page_visit() {
             $row = array(
                 'product_id'    => $post->ID,
                 'product_name'  => $post->post_title,
-                'date_viewed'   => current_time('Y-m-d H:i:s')
+                'date_viewed'   => date('Y-m-d H:i:s')
            );
             add_row('products_viewed', $row, 'user_'.$user_id);
         }
@@ -664,7 +669,8 @@ function wcg_record_product_page_visit() {
 add_filter('woocommerce_checkout_get_value', 'wcg_populate_checkout_fields', 10, 2);
 
 // Our hooked in function - $fields is passed via the filter!
-function wcg_populate_checkout_fields($input, $key){
+function wcg_populate_checkout_fields($input, $key)
+{
     $user_id = wcg_get_customer_id_by_coupon_code();
     $user_key = 'user_' . $user_id;
     
@@ -702,7 +708,8 @@ function wcg_populate_checkout_fields($input, $key){
 }
 
 // Get the current user OBJECT by the Coupon Code cookie
-function wcg_get_customer_object_by_coupon_cookie() {
+function wcg_get_customer_object_by_coupon_cookie()
+{
     $user_id = wcg_get_customer_id_by_coupon_code();
     if ($user_id > 0){
         $user = get_user_by('ID', $user_id);
@@ -713,7 +720,8 @@ function wcg_get_customer_object_by_coupon_cookie() {
 
 // Get the current user's ID from the coupon_code parameter.
 // If coupon_code is not supplied, get it from the COOKIE.
-function wcg_get_customer_id_by_coupon_code($coupon_code = null){
+function wcg_get_customer_id_by_coupon_code($coupon_code = null)
+{
     if ($coupon_code != null) {
         $coupon_code = $coupon_code;
     } elseif (isset($_GET['wcg'])) {
@@ -729,7 +737,8 @@ function wcg_get_customer_id_by_coupon_code($coupon_code = null){
 
 
 // Create an ACF Pro Options page 
-if(function_exists('acf_add_options_page')){
+if(function_exists('acf_add_options_page'))
+{
 	acf_add_options_page();
 }
 
@@ -739,7 +748,8 @@ if(function_exists('acf_add_options_page')){
 
 add_filter('rest_user_query', 'wcg_change_terms_per_page', 2, 10);
 
-function wcg_change_terms_per_page($prepared_args, $request){
+function wcg_change_terms_per_page($prepared_args, $request)
+{
     
     $max = max(WCG_USERS_PER_PAGE, (int) $request->get_param('custom_per_page'));
 
@@ -750,7 +760,8 @@ function wcg_change_terms_per_page($prepared_args, $request){
 // Remove unneeded User fields from API response
 add_filter('rest_prepare_user', 'wcg_modify_rest_user_response', 10, 3);
 
-function wcg_modify_rest_user_response($response, $user, $request){
+function wcg_modify_rest_user_response($response, $user, $request)
+{
     unset($response->data['coupon_status']);
     unset($response->data['link']);
     unset($response->data['description']);
