@@ -20,6 +20,25 @@
             "maxlength": "",
             "rows": "",
             "new_lines": ""
+        },
+        {
+            "key": "field_5dd45d842bec6",
+            "label": "Notification emails",
+            "name": "wcg_notification_emails",
+            "type": "text",
+            "instructions": "Enter a comma separated list of emails that should be notified when Carvana confirms an order is clear to be shipped.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
         }
     ],
     "location": [
@@ -39,5 +58,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1567543515
+    "modified": 1574198750
 }
