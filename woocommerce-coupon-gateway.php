@@ -556,7 +556,6 @@ function wcg_get_user_products_removed_from_cart_cb($user, $field_name, $request
 function wcg_get_user_coupons_cb($user, $field_name, $request)
 {
     $userID = 'user_' . $user['id'];
-    // $field = get_field($field_name, $userID);
     $coupons = array();
 
     if (have_rows($field_name, $userID)) {
@@ -575,6 +574,25 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
           );
         }
     } 
+    // This elseif fixes an ACF "bug" where 'have_rows' returned false 
+    // in responses to Updates API calls where the 'coupons' repeater field
+    // was being updated.
+    elseif(have_rows('field_5dc31a02b5f81', $userID)) {
+        while (have_rows('field_5dc31a02b5f81', $userID)) {
+            the_row();
+            $coupons[] = array(
+                'coupon_code' => get_sub_field("coupon_code"),
+                'is_confirmed' => get_sub_field("is_confirmed"),
+                'coupon_status' => get_sub_field("coupon_status"),
+                'vehicle_id' => get_sub_field("vehicle_id"),
+                'order_id' => get_sub_field("order_id"),
+                'product_id' => get_sub_field("product_id"),
+                'product_name' => get_sub_field("product_name"),
+                'is_address_changed' => get_sub_field("is_address_changed"),
+                'date_last_updated' => get_sub_field("date_last_updated")
+          );
+        } 
+    }
     return $coupons;
 }
 
