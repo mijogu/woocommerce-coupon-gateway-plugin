@@ -147,7 +147,7 @@ function output_testing_info($text)
 // After a successful transaction, apply the coupon code
 // that was saved as a cookie to the Order. 
 //
-// And update the coupon_status for the user to 'pending'
+// And update the coupon_status for the user to 'giftSelected' or 'giftConfirmed'
 add_action('woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
 function wcg_mark_coupon_used($order_id)
 {
@@ -165,10 +165,17 @@ function wcg_mark_coupon_used($order_id)
         return $row_data;
     }
 
+    $coupon_status = 'giftSelected';
+    
+    if ($row_data['is_confirmed'] == 'true') {
+        $coupon_status = 'giftConfirmed';
+        wcg_trigger_confirmed_email($order_id);
+    }
+
     $row_number = $row_data['row_number'];
 
     $row_data = array(
-        'coupon_status' => 'pending',
+        'coupon_status' => $coupon_status,
         'date_last_updated' => date('Y-m-d H:i:s')
    );
 
@@ -216,6 +223,7 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
 {    
     $field_name = null;
     $field_value = null;
+    $is_confirmed = null;
 
     if (!empty($coupon_code)) {
         // if coupon_code is supplied, find row by coupon_code
@@ -241,6 +249,8 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
                 $coupon_code = get_sub_field('coupon_code');
                 $vehicle_id = get_sub_field('vehicle_id');
                 $coupon_status = get_sub_field('coupon_status');
+                $order_id = get_sub_field('order_id');
+                $is_confirmed = get_sub_field('is_confirmed') === 'true' ? 'true' : '';
                 break;
             } 
         }
@@ -252,11 +262,14 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
         // throw new \Exception('Could not locate this coupon for this user.');
     }
 
+    // other fields not being returned: product_id, product_name, is_address_changed, date_last_updated
     return array(
         'row_number' => $row_number,
         'coupon_code' => $coupon_code,
         'coupon_status' => $coupon_status,
-        'vehicle_id' => $vehicle_id
+        'vehicle_id' => $vehicle_id,
+        'order_id' => $order_id, 
+        'is_confirmed' => $is_confirmed
    );
 }
 
@@ -561,20 +574,19 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 'date_last_updated' => get_sub_field("date_last_updated")
           );
         }
-    }
+    } 
     return $coupons;
 }
 
 // Create Coupon or Update Coupon
 function wcg_update_user_coupons_cb($value, $user, $field_name)
 {
-
     // createcoupon 
+    // registered
+    // giftSelected
+    // giftConfirmed
     // delivered
-    // canceled 
-    // pending - just update
-    // confirmed - just update
-    // registered - just update
+    // cancelled 
     $new_coupon_status = array_key_exists('coupon_status', $value) ? $value['coupon_status'] : null;
     $new_vehicle_id = array_key_exists('vehicle_id', $value) ? $value['vehicle_id'] : null;
     $new_is_confirmed = array_key_exists('is_confirmed', $value) ? $value['is_confirmed'] : null;
@@ -595,20 +607,32 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
     $row = array(
         'coupon_code'       => $new_coupon_code,
         'date_last_updated' => $new_date_updated
-  );
+    );
 
     if ($new_coupon_status != null) $row['coupon_status'] = $new_coupon_status;
     if ($new_vehicle_id != null) $row['vehicle_id'] = $new_vehicle_id;
     if ($new_is_confirmed != null) $row['is_confirmed'] = $new_is_confirmed;
-    
+
     if ($old_coupon_code == 'createcoupon') { // create a new coupon
         add_row('coupons', $row, 'user_'.$user->ID);
-    } else { // update an existing coupon   
+    } else { // update an existing coupon
         $row_data = wcg_get_coupon_data($new_coupon_code, $new_vehicle_id, $user->ID);
         if (is_wp_error($row_data)) return $row_data;
         $row_number = $row_data['row_number'];
+
+        // check if we're setting 'is_confirmed' to true AND there was already an order
+        // if so, need to update the status and trigger the notification emails.
+        if (
+            $new_is_confirmed == 'true' && 
+            $row_data['coupon_status'] == 'giftSelected' && 
+            !empty($row_data['order_id'])
+        ) {
+            $row['coupon_status'] = 'giftConfirmed';
+            wcg_trigger_confirmed_email($row_data['order_id']);
+        }
+
         update_row('coupons', $row_number, $row, 'user_'.$user->ID);
-    }
+    }    
 }
 
 function wcg_get_usermeta_cb($user, $field_name, $request)
@@ -775,4 +799,13 @@ function wcg_modify_rest_user_response($response, $user, $request)
     unset($response->data['capabilities']);
     unset($response->data['extra_capabilities']);
     return $response;
+}
+
+// Trigger an email to go out when Carvana confirms coupon
+function wcg_trigger_confirmed_email($order_id)
+{
+    $to = get_field('wcg_notification_emails', 'option');
+    $subject = "Carvana approved shipping order #$order_id";
+    $message = "Chris will customize this...";
+    $is_success = wp_mail($to, $subject, $message);
 }
