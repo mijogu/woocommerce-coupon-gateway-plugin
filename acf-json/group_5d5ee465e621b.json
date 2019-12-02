@@ -405,8 +405,8 @@
         },
         {
             "key": "field_5daf6e9a59cd8",
-            "label": "products removed from cart",
-            "name": "products_removed_from_cart",
+            "label": "products selected",
+            "name": "products_selected",
             "type": "repeater",
             "instructions": "",
             "required": 0,
@@ -464,8 +464,8 @@
                 },
                 {
                     "key": "field_5daf6e9b59cdb",
-                    "label": "date removed",
-                    "name": "date_removed",
+                    "label": "date added",
+                    "name": "date_added",
                     "type": "date_time_picker",
                     "instructions": "",
                     "required": 0,
@@ -499,5 +499,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1573668205
+    "modified": 1575323048
 }

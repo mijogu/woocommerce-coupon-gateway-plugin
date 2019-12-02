@@ -324,19 +324,17 @@ function wcg_rename_place_order_button()
 add_filter('woocommerce_add_to_cart_validation', 'wcg_remove_cart_item_before_add_to_cart', 20, 3);
 function wcg_remove_cart_item_before_add_to_cart($passed, $product_id, $quantity)
 {
-    if(!WC()->cart->is_empty()) {
-        $user_id = wcg_get_customer_id_by_coupon_code();
-        $items = WC()->cart->get_cart_contents();
-        foreach ($items as $item){
-            $product = wc_get_product($item['product_id']);
-            // update Products Removed From Cart
-            $row = array(
-                'product_id'    => $item['product_id'],
-                'product_name'  => $product->get_name(),
-                'date_removed'  => date('Y-m-d H:i:s')
-          );
-            add_row('products_removed_from_cart', $row, "user_$user_id");
-        }
+    $user_id = wcg_get_customer_id_by_coupon_code();
+    $product = wc_get_product($product_id);
+    // update Products Removed From Cart
+    $row = array(
+        'product_id'    => $product_id,
+        'product_name'  => $product->get_name(),
+        'date_added'  => date('Y-m-d H:i:s')
+    );
+    add_row('products_selected', $row, "user_$user_id");
+    
+    if (!WC()->cart->is_empty()) {
         WC()->cart->empty_cart();
     }
     return $passed;
@@ -410,7 +408,7 @@ function wcg_api_init()
         'phone',
         'coupons',
         'products_viewed',
-        'products_removed_from_cart',
+        'products_selected',
   );
 
     foreach ($custom_meta_fields as $field){
@@ -437,13 +435,13 @@ function wcg_api_init()
                   )
               );
             break;           
-            case 'products_removed_from_cart':
+            case 'products_selected':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
                     $field,
                     array(
-                        'get_callback'      => 'wcg_get_user_products_removed_from_cart_cb',
+                        'get_callback'      => 'wcg_get_user_products_selected_cb',
                         'update_callback'   => null
                   )
               );
@@ -535,7 +533,7 @@ function wcg_get_user_products_viewed_cb($user, $field_name, $request)
 }
 
 
-function wcg_get_user_products_removed_from_cart_cb($user, $field_name, $request)
+function wcg_get_user_products_selected_cb($user, $field_name, $request)
 {
     $userID = 'user_' . $user['id'];
     $field = get_field($field_name, $userID);
@@ -546,7 +544,7 @@ function wcg_get_user_products_removed_from_cart_cb($user, $field_name, $request
             $products[] = array(
                 'product_id' => get_sub_field("product_id"),
                 'product_name' => get_sub_field("product_name"),
-                'date_removed' => get_sub_field("date_removed")
+                'date_added' => get_sub_field("date_added")
           );
         }
     }
