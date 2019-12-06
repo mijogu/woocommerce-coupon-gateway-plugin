@@ -301,29 +301,6 @@ function wcg_gift_review()
     } 
 }
 
-// Changing Add to Cart button text to custom text in individual product pages
-add_filter('woocommerce_product_single_add_to_cart_text', 'wcg_custom_cart_button_text');
-function wcg_custom_cart_button_text()
-{
-    return __('Select Gift', 'woocommerce');
-}
-
-//  Skip cart, go straight to checkout
-add_filter('woocommerce_add_to_cart_redirect', 'wcg_add_to_cart_redirect');
-function wcg_add_to_cart_redirect()
-{
-    global $woocommerce;
-    $checkout_url = wc_get_checkout_url();
-    return $checkout_url;
-}
-
-
-// Change "place order" button text
-add_filter('woocommerce_order_button_text', 'wcg_rename_place_order_button');
-function wcg_rename_place_order_button()
-{
-   return 'Send Gift'; 
-}
 
 // Empty cart before adding new item
 add_filter('woocommerce_add_to_cart_validation', 'wcg_remove_cart_item_before_add_to_cart', 20, 3);
