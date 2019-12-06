@@ -538,6 +538,7 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
     $userID = 'user_' . $user['id'];
     $coupons = array();
 
+    /*
     if (have_rows($field_name, $userID)) {
         while (have_rows($field_name, $userID)) {
             the_row();
@@ -547,7 +548,7 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 'coupon_status' => get_sub_field("coupon_status"),
                 'vehicle_id' => get_sub_field("vehicle_id"),
                 'order_id' => get_sub_field("order_id"),
-                'product_id' => get_sub_field("product_id"),
+                'product_id' => $product_id,
                 'product_name' => get_sub_field("product_name"),
                 'is_address_changed' => get_sub_field("is_address_changed"),
                 'date_last_updated' => get_sub_field("date_last_updated"),
@@ -555,20 +556,30 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
             );
         }
     } 
+    */
     // This elseif fixes an ACF "bug" where 'have_rows' returned false 
     // in responses to Updates API calls where the 'coupons' repeater field
     // was being updated.
-    elseif(have_rows('field_5dc31a02b5f81', $userID)) {
+    //elseif(have_rows('field_5dc31a02b5f81', $userID)) {
+    if(have_rows('field_5dc31a02b5f81', $userID)) {
         while (have_rows('field_5dc31a02b5f81', $userID)) {
             the_row();
+            $product_id = get_sub_field("product_id");
+            $order_id = get_sub_field("order_id");
+            $product = wc_get_product($product_id);
+            // $order = '';
             $coupons[] = array(
                 'coupon_code' => get_sub_field("coupon_code"),
                 'is_confirmed' => get_sub_field("is_confirmed"),
                 'coupon_status' => get_sub_field("coupon_status"),
                 'vehicle_id' => get_sub_field("vehicle_id"),
-                'order_id' => get_sub_field("order_id"),
+                'order_id' => $order_id,
+                'order_status' => wcg_get_order_status($order_id),
+                'order_notes' => wcg_get_order_notes($order_id),
                 'product_id' => get_sub_field("product_id"),
                 'product_name' => get_sub_field("product_name"),
+                'product_attributes' => wcg_get_product_attributes($product),
+                'product_categories' => wcg_get_product_categories($product),
                 'is_address_changed' => get_sub_field("is_address_changed"),
                 'date_last_updated' => get_sub_field("date_last_updated"),
                 'date_checkout' => get_sub_field('date_checkout'),
@@ -576,6 +587,60 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
         } 
     }
     return $coupons;
+}
+
+// Return array of all product attributes
+function wcg_get_product_attributes($product) 
+{
+    if ($product == null) return ''; 
+
+    $attributes = $product->get_attributes();
+    $attr_list = array();
+    foreach ($attributes as $attr) {
+        $attr_name = $attr->get_name();
+        $attr_label = wc_attribute_label($attr_name);
+        $attr_value = '';
+        foreach (wp_get_post_terms($product->get_id(), $attr_name) as $term) {
+            $attr_value .= ($attr_value == '') ? $term->name : ", $term->name";
+        }
+        $attr_list[$attr_label] = $attr_value;
+    }
+    return $attr_list;
+}
+
+// Return array of all product categories
+function wcg_get_product_categories($product) 
+{
+    if ($product == null) return ''; 
+
+    $cat_list = '';
+    foreach (wp_get_post_terms($product->get_id(), 'product_cat') as $category) {
+        $cat_list .= ($cat_list == '') ? $category->name : ", $category->name" ;
+    }
+    return $cat_list;
+}
+
+// Return array of order notes
+function wcg_get_order_notes($order_id)
+{
+    if ($order_id == null) return '';
+
+    $note_list = array();
+    $notes = wc_get_order_notes(array('order_id' => $order_id, 'type' => 'internal'));
+    foreach ($notes as $note) {
+        $note_list[] = $note->content;
+    }
+    return $note_list;
+}
+
+// Return order status
+function wcg_get_order_status($order_id)
+{
+    if ($order_id == null) return '';
+
+    $order = wc_get_order($order_id);
+    $status = $order->get_status();
+    return ($status == 'completed') ? 'shipped' : $status;
 }
 
 // Create Coupon or Update Coupon
