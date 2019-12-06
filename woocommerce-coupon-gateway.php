@@ -160,30 +160,31 @@ function wcg_mark_coupon_used($order_id)
 
     $userID = wcg_get_customer_id_by_coupon_code($coupon_code);
 
-    $row_data = wcg_get_coupon_data($coupon_code, '', $userID);
-    if (is_wp_error($row_data)) {
-        return $row_data;
+    $coupon_data = wcg_get_coupon_data($coupon_code, '', $userID);
+    if (is_wp_error($coupon_data)) {
+        return $coupon_data;
     }
 
     $coupon_status = 'giftSelected';
     
-    if ($row_data['is_confirmed'] == 'true') {
+    if ($coupon_data['is_confirmed'] == true) {
         $coupon_status = 'giftConfirmed';
         wcg_trigger_confirmed_email($order_id);
     }
 
-    $row_number = $row_data['row_number'];
+    $row_number = $coupon_data['row_number'];
 
     $row_data = array(
         'coupon_status' => $coupon_status,
-        'date_last_updated' => date('Y-m-d H:i:s')
+        'date_last_updated' => date('Y-m-d H:i:s'),
+        'date_checkout' => date('Y-m-d H:i:s')
    );
 
     // check if user changed their default address
     $order_address = $order->get_address('shipping');
     $address_changed = '';
     if (wcg_was_address_changed($order_address, $userID)) {
-        $row_data['is_address_changed'] = 'yes';
+        $row_data['is_address_changed'] = true;
     }
 
     // add the purchase information to coupon row
@@ -224,6 +225,7 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
     $field_name = null;
     $field_value = null;
     $is_confirmed = null;
+    $date_checkout = '';
 
     if (!empty($coupon_code)) {
         // if coupon_code is supplied, find row by coupon_code
@@ -250,7 +252,9 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
                 $vehicle_id = get_sub_field('vehicle_id');
                 $coupon_status = get_sub_field('coupon_status');
                 $order_id = get_sub_field('order_id');
-                $is_confirmed = get_sub_field('is_confirmed') === 'true' ? 'true' : '';
+                // $is_confirmed = get_sub_field('is_confirmed') === 'true' ? 'true' : '';
+                $is_confirmed = get_sub_field('is_confirmed');
+                $date_checkout = get_sub_field('date_checkout');
                 break;
             } 
         }
@@ -269,7 +273,8 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
         'coupon_status' => $coupon_status,
         'vehicle_id' => $vehicle_id,
         'order_id' => $order_id, 
-        'is_confirmed' => $is_confirmed
+        'is_confirmed' => $is_confirmed,
+        'date_checkout' => $date_checkout
    );
 }
 
@@ -568,8 +573,9 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 'product_id' => get_sub_field("product_id"),
                 'product_name' => get_sub_field("product_name"),
                 'is_address_changed' => get_sub_field("is_address_changed"),
-                'date_last_updated' => get_sub_field("date_last_updated")
-          );
+                'date_last_updated' => get_sub_field("date_last_updated"),
+                'date_checkout' => get_sub_field('date_checkout'),
+            );
         }
     } 
     // This elseif fixes an ACF "bug" where 'have_rows' returned false 
@@ -587,7 +593,8 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 'product_id' => get_sub_field("product_id"),
                 'product_name' => get_sub_field("product_name"),
                 'is_address_changed' => get_sub_field("is_address_changed"),
-                'date_last_updated' => get_sub_field("date_last_updated")
+                'date_last_updated' => get_sub_field("date_last_updated"),
+                'date_checkout' => get_sub_field('date_checkout'),
           );
         } 
     }
@@ -639,7 +646,7 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
         // check if we're setting 'is_confirmed' to true AND there was already an order
         // if so, need to update the status and trigger the notification emails.
         if (
-            $new_is_confirmed == 'true' && 
+            $new_is_confirmed == true && 
             $row_data['coupon_status'] == 'giftSelected' && 
             !empty($row_data['order_id'])
         ) {

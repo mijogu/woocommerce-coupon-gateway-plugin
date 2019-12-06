@@ -177,7 +177,7 @@
                     "key": "field_5dcb15dd730e5",
                     "label": "is confirmed",
                     "name": "is_confirmed",
-                    "type": "text",
+                    "type": "true_false",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
@@ -186,11 +186,11 @@
                         "class": "",
                         "id": ""
                     },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": ""
+                    "message": "",
+                    "default_value": 0,
+                    "ui": 0,
+                    "ui_on_text": "",
+                    "ui_off_text": ""
                 },
                 {
                     "key": "field_5dc31a02b5f83",
@@ -291,7 +291,7 @@
                     "key": "field_5dcb17fe93dfb",
                     "label": "is address changed",
                     "name": "is_address_changed",
-                    "type": "text",
+                    "type": "true_false",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
@@ -300,16 +300,33 @@
                         "class": "",
                         "id": ""
                     },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": ""
+                    "message": "",
+                    "default_value": 0,
+                    "ui": 0,
+                    "ui_on_text": "",
+                    "ui_off_text": ""
                 },
                 {
                     "key": "field_5dcb182593dfc",
                     "label": "date last updated",
                     "name": "date_last_updated",
+                    "type": "date_time_picker",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "display_format": "d\/m\/Y g:i a",
+                    "return_format": "d\/m\/Y g:i a",
+                    "first_day": 1
+                },
+                {
+                    "key": "field_5de5881d88f08",
+                    "label": "date checkout",
+                    "name": "date_checkout",
                     "type": "date_time_picker",
                     "instructions": "",
                     "required": 0,
@@ -499,5 +516,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1575323048
+    "modified": 1575326146
 }
