@@ -319,8 +319,8 @@
                         "class": "",
                         "id": ""
                     },
-                    "display_format": "d\/m\/Y g:i a",
-                    "return_format": "d\/m\/Y g:i a",
+                    "display_format": "c",
+                    "return_format": "c",
                     "first_day": 1
                 },
                 {
@@ -336,8 +336,8 @@
                         "class": "",
                         "id": ""
                     },
-                    "display_format": "d\/m\/Y g:i a",
-                    "return_format": "d\/m\/Y g:i a",
+                    "display_format": "c",
+                    "return_format": "c",
                     "first_day": 1
                 }
             ]
@@ -414,8 +414,8 @@
                         "class": "",
                         "id": ""
                     },
-                    "display_format": "Y-m-d H:i:s",
-                    "return_format": "Y-m-d H:i:s",
+                    "display_format": "c",
+                    "return_format": "c",
                     "first_day": 1
                 }
             ]
@@ -492,8 +492,8 @@
                         "class": "",
                         "id": ""
                     },
-                    "display_format": "Y-m-d H:i:s",
-                    "return_format": "Y-m-d H:i:s",
+                    "display_format": "c",
+                    "return_format": "c",
                     "first_day": 1
                 }
             ]
@@ -516,5 +516,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1575326146
+    "modified": 1575659772
 }
