@@ -28,7 +28,7 @@
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-@userid = 3349
+@userid = 3352
 @carvanauid = C2654133-19A1-4AF8-ABEA-2D3920F65B28
 
 
@@ -170,19 +170,19 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "first_name" :  "{{first_name}}",
-    "last_name" :   "{{last_name}}",
-    "address_1" :   "{{address_1}}",
-    "address_2" :   "{{address_2}}",
-    "city":         "{{city}}",
-    "state":        "{{state}}",
-    "zip":          "{{zip}}",
-    "phone":        "{{phone}}",
+    //"first_name" :  "{{first_name}}",
+    //"last_name" :   "{{last_name}}",
+    //"address_1" :   "{{address_1}}",
+    //"address_2" :   "{{address_2}}",
+    //"city":         "{{city}}",
+    //"state":        "{{state}}",
+    //"zip":          "{{zip}}",
+    //"phone":        "{{phone}}",
     "coupons": {
         //"coupon_status": "canceled",
-        "vehicle_id": "111111111",
-        //"is_confirmed": "true",
-        "coupon_code": "ee656f0eab2431df70be67e490063a74-1574278603-3349"
+        //"vehicle_id": "111111111",
+        "is_confirmed": false,
+        "coupon_code": "f606dae8fb461b6bcf53347c671af416-1573680816-3352"
     }
 }
 
