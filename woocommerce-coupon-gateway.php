@@ -574,8 +574,8 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 'coupon_status' => get_sub_field("coupon_status"),
                 'vehicle_id' => get_sub_field("vehicle_id"),
                 'order_id' => $order_id,
-                'order_status' => wcg_get_order_status($order_id),
-                'order_notes' => wcg_get_order_notes($order_id),
+                // 'order_status' => wcg_get_order_status($order_id),
+                //'order_notes' => wcg_get_order_notes($order_id),
                 'product_id' => get_sub_field("product_id"),
                 'product_name' => get_sub_field("product_name"),
                 'product_attributes' => wcg_get_product_attributes($product),
@@ -640,7 +640,8 @@ function wcg_get_order_status($order_id)
 
     $order = wc_get_order($order_id);
     $status = $order->get_status();
-    return ($status == 'completed') ? 'shipped' : $status;
+    // return ($status == 'completed') ? 'shipped' : $status; // TODO remove this?
+    return $status;
 }
 
 // Create Coupon or Update Coupon
