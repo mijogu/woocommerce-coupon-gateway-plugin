@@ -339,6 +339,63 @@
                     "display_format": "c",
                     "return_format": "c",
                     "first_day": 1
+                },
+                {
+                    "key": "field_5df3e1ccb1a89",
+                    "label": "tracking number",
+                    "name": "tracking_number",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
+                },
+                {
+                    "key": "field_5df3e1d8b1a8a",
+                    "label": "tracking link",
+                    "name": "tracking_link",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
+                },
+                {
+                    "key": "field_5df3e1e0b1a8b",
+                    "label": "carrier",
+                    "name": "carrier",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": ""
                 }
             ]
         },
@@ -516,5 +573,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1575659772
+    "modified": 1576264180
 }
