@@ -314,8 +314,8 @@ function wcg_remove_cart_item_before_add_to_cart($passed, $product_id, $quantity
         'product_name'  => $product->get_name(),
         'date_added'  => date('Y-m-d H:i:s')
     );
-    add_row('products_selected', $row, "user_$user_id");
-    
+        add_row('products_selected', $row, "user_$user_id");
+
     if (!WC()->cart->is_empty()) {
         WC()->cart->empty_cart();
     }
@@ -877,4 +877,103 @@ function wcg_trigger_confirmed_email($order_id)
     $subject = "Carvana approved shipping order #$order_id";
     $message = "Chris will customize this...";
     $is_success = wp_mail($to, $subject, $message);
+}
+
+
+// Hook into the save_post function looking for posts with
+// "delivery-notification" category. These are shipping/delivery emails 
+// coming from Shipstation. 
+// Parse these posts for the desired data and save to the appropriate coupon.
+add_action('save_post', 'wcg_parse_shipstation_email_posts', 11, 3);
+
+function wcg_parse_shipstation_email_posts($post_id, $post, $update) 
+{    
+    if (!in_category('delivery-notification', $post)) {
+        return;
+    } 
+
+    // check for post title to determine shipping vs delivery
+    $coupon_status = strpos($post->post_title, 'on its way') ? 'shipped' : 'delivered';
+    
+    $content = $post->post_content;
+    // $stripped_content = strtolower(str_replace("\r\n", "", strip_tags($post->post_content)));
+
+    $strip_characters = array(
+        "\r\n", "\r", "\n", "\t", "&nbsp;", " ", "\\u00a0", "\0", "\x0B"
+    );
+    $replace_characters = array(
+        '', '', '', '', '', '', '', '', ''
+    );
+
+    $stripped_content = strtolower(strip_tags($post->post_content));
+    // $stripped_content = normalize_whitespace($stripped_content);
+    // $stripped_content = str_replace($strip_characters, $replace_characters, $stripped_content);
+    // $stripped_content = trim(preg_replace('/\s+/', '', $stripped_content));
+    // $stripped_content = preg_replace("~\x{00a0}~", '', $stripped_content);
+
+    $stripped_content = preg_replace("/[^a-zA-Z0-9]/", "", $stripped_content);
+    // $start_string = "order number:";
+    // $start_pos = strpos($stripped_content, $start_string) + strlen($start_string);
+    // $end_string = "shipping address:";
+
+    $order_num = null;
+    $tracking_num = null;
+    $tracking_link = null;
+    $carrier = null;
+
+    if (preg_match('/ordernumber(.*?)shippingaddress/', $stripped_content, $match)) {
+        $order_num = trim($match[1]);
+    }
+    
+    if (preg_match('/trackingnumber(.*?)ordernumber/', $stripped_content, $match)) {
+        $tracking_num = trim($match[1]);
+    } else if (preg_match('/trackingnumber(.*?)receiveeven/', $stripped_content, $match)) {
+        $tracking_num = trim($match[1]);
+    }
+
+    if (preg_match('/shippedvia(.*?)trackingnumber/', $stripped_content, $match)) {
+        $carrier = trim($match[1]);
+    }
+        
+    $content = preg_replace('/(<[^>]+) style=".*?"/i', '$1', $content);
+    if (preg_match('/<a href="(.*?)">/', $content, $match)) {
+        $tracking_link = trim($match[1]);
+    }
+    
+    // get the wc order
+    $order = wc_get_order($order_num);
+
+    // get coupon code for the order
+    if ($order) {
+        foreach ($order->get_used_coupons() as $coupon_code) {
+            // get user id from coupon code
+            $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
+            if (!$user_id) continue;
+
+            // find the correct coupon row
+            $coupon_data = wcg_get_coupon_data($coupon_code ,'' , $user_id);
+            if (!$coupon_data) continue;
+
+            // update that coupon row
+            $row = array(
+                'coupon_status' => $coupon_status
+            );
+            if ($tracking_num != null)  $row['tracking_number'] = $tracking_num;
+            if ($tracking_link != null) $row['tracking_link'] = $tracking_link;
+            if ($carrier != null)       $row['carrier'] = $carrier;
+
+            update_row('coupons', $coupon_data['row_number'], $row, "user_$user_id");
+        }
+    }
+
+    // Mark this email post as processed with custom category
+    $cat_name = 'Email Processed';
+    $cat_id = term_exists($cat_name, 'category');
+    if (!$cat_id) {
+        $cat_id = wp_insert_term($cat_name, 'category');
+    }
+
+    wp_set_post_categories($post_id, array($cat_id['term_id']), true);
+
+    return;
 }
