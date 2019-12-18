@@ -891,52 +891,62 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
     if (!in_category('delivery-notification', $post)) {
         return;
     } 
-
-    // check for post title to determine shipping vs delivery
-    $coupon_status = strpos($post->post_title, 'on its way') ? 'shipped' : 'delivered';
     
-    $content = $post->post_content;
-    // $stripped_content = strtolower(str_replace("\r\n", "", strip_tags($post->post_content)));
-
-    $strip_characters = array(
-        "\r\n", "\r", "\n", "\t", "&nbsp;", " ", "\\u00a0", "\0", "\x0B"
-    );
-    $replace_characters = array(
-        '', '', '', '', '', '', '', '', ''
-    );
-
-    $stripped_content = strtolower(strip_tags($post->post_content));
-    // $stripped_content = normalize_whitespace($stripped_content);
-    // $stripped_content = str_replace($strip_characters, $replace_characters, $stripped_content);
-    // $stripped_content = trim(preg_replace('/\s+/', '', $stripped_content));
-    // $stripped_content = preg_replace("~\x{00a0}~", '', $stripped_content);
-
-    $stripped_content = preg_replace("/[^a-zA-Z0-9]/", "", $stripped_content);
-    // $start_string = "order number:";
-    // $start_pos = strpos($stripped_content, $start_string) + strlen($start_string);
-    // $end_string = "shipping address:";
-
+    $content = $post->post_content;    
+    
+    // Most recently used 
+    // $strip_characters = array(
+    //     "\r\n", "\r", "\n", "\t", "&nbsp;", " ", "\\u00a0", "\0", "\x0B"
+    // );
+    // $replace_characters = array(
+    //     '', '', '', '', '', '', '', '', ''
+    // );
+    // $stripped_content = strtolower(strip_tags($post->post_content));
+    // $stripped_content = preg_replace("/[^a-zA-Z0-9]/", "", $stripped_content);
+        
+    $coupon_status = null;
     $order_num = null;
     $tracking_num = null;
     $tracking_link = null;
     $carrier = null;
 
-    if (preg_match('/ordernumber(.*?)shippingaddress/', $stripped_content, $match)) {
-        $order_num = trim($match[1]);
+    // check for post title to determine shipping vs delivery
+    // $coupon_status = strpos($post->post_title, 'on its way') ? 'shipped' : 'delivered';
+    $delivered_regex = '/id=[\'\"]delivered_email[\'\"]/';
+    $shipped_regex = '/id=[\'\"]shipped_email[\'\"]/';
+    if (preg_match($delivered_regex, $content)) {
+        $coupon_status = 'delivered';
+    } elseif (preg_match($shipped_regex, $content)) {
+        $coupon_status = 'shipped';
     }
     
-    if (preg_match('/trackingnumber(.*?)ordernumber/', $stripped_content, $match)) {
-        $tracking_num = trim($match[1]);
-    } else if (preg_match('/trackingnumber(.*?)receiveeven/', $stripped_content, $match)) {
+    // parse for order number
+    $order_num_regex = '/<span[^>]*id=[\'|\"]order_number[\'|\"][^>]*>[\s]*([^<]+)[\s]*<\/span>/';
+    if (preg_match($order_num_regex, $content, $match)) {
+        $order_num = trim($match[1]);
+    } else {
+        // Missing order number means we cannot process this Email Post.
+        return;
+    }
+    
+    // parse for tracking number
+    $tracking_num_regex = '/<span[^>]*id=[\'|\"]tracking_num[\'|\"][^>]*>[\s]*([^<]+)[\s]*<\/span>/';
+    if (preg_match($tracking_num_regex, $content, $match)) {
         $tracking_num = trim($match[1]);
     }
-
-    if (preg_match('/shippedvia(.*?)trackingnumber/', $stripped_content, $match)) {
+    
+    // parse for carrier
+    $carrier_regex = '/<span[^>]*id=[\'|"]carrier_name[\'|"][^>]*>[\s]*([^<]+)[\s]*<\/span>/';
+    if (preg_match($carrier_regex, $content, $match)) {
         $carrier = trim($match[1]);
     }
-        
-    $content = preg_replace('/(<[^>]+) style=".*?"/i', '$1', $content);
-    if (preg_match('/<a href="(.*?)">/', $content, $match)) {
+    
+    // parse for tracking link
+    $tracking_link_regex = '/<a[^>]*id=[\'|\"]tracking_link[\'|\"][^>]*href=[\'|\"][\s]*([^\'\"]+)[\s]*[\'|\"][^>]*>/';
+    $tracking_link_regex_alt = '/<a[^>]*href=[\'|\"][\s]*([^\'\"]+)[\s]*[\'|\"][^>]*id=[\'|\"]tracking_link[\'|\"][^>]*>/';
+    if (preg_match($tracking_link_regex, $content, $match)) {
+        $tracking_link = trim($match[1]);
+    } elseif (preg_match($tracking_link_regex_alt, $content, $match)) {
         $tracking_link = trim($match[1]);
     }
     
@@ -964,6 +974,8 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
 
             update_row('coupons', $coupon_data['row_number'], $row, "user_$user_id");
         }
+    } else {
+        return;
     }
 
     // Mark this email post as processed with custom category
