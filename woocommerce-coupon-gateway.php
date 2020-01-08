@@ -550,6 +550,7 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
 {
     $userID = 'user_' . $user['id'];
     $coupons = array();
+    $coupon = array();
 
     /*
     if (have_rows($field_name, $userID)) {
@@ -580,15 +581,13 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
             $product_id = get_sub_field("product_id");
             $order_id = get_sub_field("order_id");
             $product = wc_get_product($product_id);
-            // $order = '';
-            $coupons[] = array(
+            $is_address_changed = get_sub_field("is_address_changed");
+            $coupon = array(
                 'coupon_code' => get_sub_field("coupon_code"),
                 'is_confirmed' => get_sub_field("is_confirmed"),
                 'coupon_status' => get_sub_field("coupon_status"),
                 'vehicle_id' => get_sub_field("vehicle_id"),
                 'order_id' => $order_id,
-                // 'order_status' => wcg_get_order_status($order_id),
-                //'order_notes' => wcg_get_order_notes($order_id),
                 'tracking_number' => get_sub_field("tracking_number"),
                 'tracking_link' => get_sub_field("tracking_link"),
                 'carrier' => get_sub_field("carrier"),
@@ -596,10 +595,26 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 'product_name' => get_sub_field("product_name"),
                 'product_attributes' => wcg_get_product_attributes($product),
                 'product_categories' => wcg_get_product_categories($product),
-                'is_address_changed' => get_sub_field("is_address_changed"),
+                'is_address_changed' => $is_address_changed,
                 'date_last_updated' => get_sub_field("date_last_updated"),
                 'date_checkout' => get_sub_field('date_checkout'),
-          );
+            );
+
+            // TODO check if address was changed, and if so return the following fields
+            if ($is_address_changed) {
+                // get address details from order
+                $order = new WC_Order($order_id);
+                $address = $order->get_address(); // defaults to 'billing'
+                $coupon['shipped_to_street1'] = $address['address_1'];
+                $coupon['shipped_to_street2'] = $address['address_2'];
+                $coupon['shipped_to_city'] = $address['city'];
+                $coupon['shipped_to_state'] = $address['state'];
+                $coupon['shipped_to_zip'] = $address['postcode'];
+            }
+            
+            // TODO add field shipped_to_phone
+            
+            $coupons[] = $coupon;
         } 
     }
     return $coupons;
