@@ -37,6 +37,7 @@ function check_query_string_coupon_code()
             || is_login_page()
             || is_thank_you_page()
             || is_oops_page()
+            || is_catalog_page()
       ){
         output_testing_info('you are authorized');
         //return;
@@ -81,6 +82,13 @@ function is_oops_page()
     return $is_oops_page;
 }
 
+function is_catalog_page()
+{
+    $catalog_page = get_catalog_page();
+    $is_catalog_page = strpos($_SERVER['REQUEST_URI'], $catalog_page);
+    return $is_catalog_page;
+}
+
 function get_thank_you_page() 
 {
     return 'congrats';
@@ -89,6 +97,11 @@ function get_thank_you_page()
 function get_oops_page() 
 {
     return 'oops';
+}
+
+function get_catalog_page()
+{
+    return 'catalog';
 }
 
 function wcg_check_page_access() 
