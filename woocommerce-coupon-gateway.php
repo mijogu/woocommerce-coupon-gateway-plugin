@@ -403,7 +403,7 @@ function wcg_api_init()
         'coupons',
         'products_viewed',
         'products_selected',
-  );
+    );
 
     foreach ($custom_meta_fields as $field){
         switch ($field) :
@@ -611,7 +611,7 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 $coupon['shipped_to_state'] = $address['state'];
                 $coupon['shipped_to_zip'] = $address['postcode'];
             }
-            
+
             $coupons[] = $coupon;
         } 
     }
@@ -864,15 +864,18 @@ if(function_exists('acf_add_options_page'))
 
 // Increase the APIs default maximum "per_page" amount. 
 // Originally, "per_page" needed to be between 1 and 100
+// Also, limit results only to Subscribers
+add_filter('rest_user_query', 'wcg_change_user_query', 2, 10);
 
-add_filter('rest_user_query', 'wcg_change_terms_per_page', 2, 10);
-
-function wcg_change_terms_per_page($prepared_args, $request)
+function wcg_change_user_query($prepared_args, $request)
 {
-    
+    // increase the total results returned
     $max = max(WCG_USERS_PER_PAGE, (int) $request->get_param('custom_per_page'));
-
     $prepared_args['number'] = $max;
+
+    // exclude admins from being returned
+    $prepared_args['role'] = 'Subscriber';
+    
     return $prepared_args;
 }
 
