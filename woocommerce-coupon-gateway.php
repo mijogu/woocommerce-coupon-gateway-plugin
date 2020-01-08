@@ -215,7 +215,6 @@ function wcg_mark_coupon_used($order_id)
 
 function wcg_was_address_changed($order_address, $user_id)
 {
-
     if (
         $order_address['address_1'] != get_field('address_1', "user_$user_id")
         || $order_address['address_2'] != get_field('address_2', "user_$user_id")
@@ -582,6 +581,8 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
             $order_id = get_sub_field("order_id");
             $product = wc_get_product($product_id);
             $is_address_changed = get_sub_field("is_address_changed");
+            $order = new WC_Order($order_id);
+            $address = $order->get_address(); // defaults to 'billing'
             $coupon = array(
                 'coupon_code' => get_sub_field("coupon_code"),
                 'is_confirmed' => get_sub_field("is_confirmed"),
@@ -598,21 +599,18 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
                 'is_address_changed' => $is_address_changed,
                 'date_last_updated' => get_sub_field("date_last_updated"),
                 'date_checkout' => get_sub_field('date_checkout'),
+                'shipped_to_phone' => $address['phone']
             );
 
-            // TODO check if address was changed, and if so return the following fields
+            // If address was changed, include address from the Order
             if ($is_address_changed) {
                 // get address details from order
-                $order = new WC_Order($order_id);
-                $address = $order->get_address(); // defaults to 'billing'
                 $coupon['shipped_to_street1'] = $address['address_1'];
                 $coupon['shipped_to_street2'] = $address['address_2'];
                 $coupon['shipped_to_city'] = $address['city'];
                 $coupon['shipped_to_state'] = $address['state'];
                 $coupon['shipped_to_zip'] = $address['postcode'];
             }
-            
-            // TODO add field shipped_to_phone
             
             $coupons[] = $coupon;
         } 
