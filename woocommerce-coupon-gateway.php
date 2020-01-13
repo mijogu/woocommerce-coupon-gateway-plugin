@@ -727,7 +727,21 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
         }
 
         update_row('coupons', $row_number, $row, 'user_'.$user->ID);
-    }    
+
+        // Handle coupon cancellation. 
+        if (strtolower($new_coupon_status) == 'cancelled' || strtolower($new_coupon_status) == 'canceled') {
+            
+            if ($row_data['order_id'] != '') {
+                // Cancel, when coupon has not yet been used -- no Order.
+                $order = new WC_Order($row_data['order_id']);
+                $order->update_status('cancelled');
+            } else {
+                // Cancel, when coupon was already used -- has Order.
+                $coupon = new WC_Coupon($new_coupon_code);
+                wp_update_post(array('ID' => $coupon->id, 'post_status' => 'draft'));
+            }
+        }
+    }
 }
 
 function wcg_get_usermeta_cb($user, $field_name, $request)
