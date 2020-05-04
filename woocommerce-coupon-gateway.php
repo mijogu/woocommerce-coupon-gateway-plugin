@@ -238,6 +238,7 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
     $field_value = null;
     $is_confirmed = null;
     $date_checkout = '';
+    $type = null;
 
     if (!empty($coupon_code)) {
         // if coupon_code is supplied, find row by coupon_code
@@ -267,6 +268,7 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
                 // $is_confirmed = get_sub_field('is_confirmed') === 'true' ? 'true' : '';
                 $is_confirmed = get_sub_field('is_confirmed');
                 $date_checkout = get_sub_field('date_checkout');
+                $type = get_sub_field('type');
                 break;
             } 
         }
@@ -286,7 +288,8 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
         'vehicle_id' => $vehicle_id,
         'order_id' => $order_id, 
         'is_confirmed' => $is_confirmed,
-        'date_checkout' => $date_checkout
+        'date_checkout' => $date_checkout,
+        'type' => $type
    );
 }
 
@@ -585,6 +588,7 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
             $address = $order->get_address(); // defaults to 'billing'
             $coupon = array(
                 'coupon_code' => get_sub_field("coupon_code"),
+                'type' => get_sub_field("type"),
                 'is_confirmed' => get_sub_field("is_confirmed"),
                 'coupon_status' => get_sub_field("coupon_status"),
                 'vehicle_id' => get_sub_field("vehicle_id"),
@@ -689,7 +693,13 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
     
     $old_coupon_code = $value['coupon_code'];
     $new_coupon_code = '';
-    if ($old_coupon_code == 'createcoupon') { // create a new coupon
+    $coupon_type = '';
+    if (strpos($old_coupon_code, 'createcoupon') === 0) { // create a new coupon
+        $delim = strpos($old_coupon_code, '|');
+        if ($delim) {
+            $coupon_type = substr($old_coupon_code, $delim+1);
+        }
+        
         $email = $user->data->user_email;
         $new_coupon_code = generate_coupon($email, $user->ID);
         // if status not specified when creating coupon,
@@ -701,14 +711,15 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
 
     $row = array(
         'coupon_code'       => $new_coupon_code,
-        'date_last_updated' => $new_date_updated
+        'date_last_updated' => $new_date_updated,
+        'type'              => $coupon_type
     );
 
     if ($new_coupon_status != null) $row['coupon_status'] = $new_coupon_status;
     if ($new_vehicle_id != null) $row['vehicle_id'] = $new_vehicle_id;
     if ($new_is_confirmed != null) $row['is_confirmed'] = $new_is_confirmed;
 
-    if ($old_coupon_code == 'createcoupon') { // create a new coupon
+    if (strpos($old_coupon_code, 'createcoupon') === 0) { // create a new coupon
         add_row('coupons', $row, 'user_'.$user->ID);
     } else { // update an existing coupon
         $row_data = wcg_get_coupon_data($new_coupon_code, $new_vehicle_id, $user->ID);
