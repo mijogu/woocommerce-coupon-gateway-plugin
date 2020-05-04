@@ -31,7 +31,7 @@ define('WCG_TESTING', false);
 add_action('parse_query', 'wcg_check_query_string_coupon_code', 10);
 
 function wcg_check_query_string_coupon_code()
-{
+{    
     global $current_user;
     $coupon_cookie = WCG_CODE_COOKIE;
     $coupon_code = '';
@@ -51,17 +51,17 @@ function wcg_check_query_string_coupon_code()
     } elseif (isset($_COOKIE[$coupon_cookie])) {
         $coupon_code = $_COOKIE[$coupon_cookie];               
     }
-        
+
     // confirm code is valid
     // will redirect to OOPS if not valid
     // set 2 possible cookies
     // wcg_check_code_validity($coupon_code, $set_new_cookie); 
-        wcg_check_code_validity($coupon_code);
-        
+    wcg_check_code_validity($coupon_code); 
+
     // when this is called, we've already confirmed the valid code
     // $accessible = wcg_is_accessible_page($coupon_code);
     wcg_is_accessible_page();
-    }
+}
 
 function is_login_page() 
 {
@@ -84,7 +84,7 @@ function wcg_is_accessible_page()
     $redirect_to = "/";
     if (isset($_COOKIE[$redirect_cookie])) {
         $redirect_to = $_COOKIE[$redirect_cookie];
-}
+    }
     $allowable_pages[] = $redirect_to;
 
     $url_parts = explode('?', $_SERVER['REQUEST_URI'], 2);
@@ -95,9 +95,9 @@ function wcg_is_accessible_page()
         $pos = strpos($url_parts[0], $page);
         if ($pos !== false) {
             return;
-}
-}
-
+        }
+    } 
+    
     // if (is_product()) {
     //     return true;
     // } elseif (is_cart()) {
@@ -111,8 +111,8 @@ function wcg_is_accessible_page()
     // }
 
     wp_redirect(site_url($redirect_to));
-        exit;
-    }    
+    exit;
+}
 
 
 function wcg_check_code_validity($coupon_code)
@@ -133,7 +133,7 @@ function wcg_check_code_validity($coupon_code)
         $thanks = WCG_THANKYOU_PAGE;
         wp_redirect(site_url($thanks));
         exit;
-    }    
+    }
 
     if (!isset($_COOKIE[$coupon_cookie])) {
         // set cookie to expire (in a month)
@@ -547,29 +547,9 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
     $coupons = array();
     $coupon = array();
 
-    /*
-    if (have_rows($field_name, $userID)) {
-        while (have_rows($field_name, $userID)) {
-            the_row();
-            $coupons[] = array(
-                'coupon_code' => get_sub_field("coupon_code"),
-                'is_confirmed' => get_sub_field("is_confirmed"),
-                'coupon_status' => get_sub_field("coupon_status"),
-                'vehicle_id' => get_sub_field("vehicle_id"),
-                'order_id' => get_sub_field("order_id"),
-                'product_id' => $product_id,
-                'product_name' => get_sub_field("product_name"),
-                'is_address_changed' => get_sub_field("is_address_changed"),
-                'date_last_updated' => get_sub_field("date_last_updated"),
-                'date_checkout' => get_sub_field('date_checkout'),
-            );
-        }
-    } 
-    */
-    // This elseif fixes an ACF "bug" where 'have_rows' returned false 
+    // This below fixes an ACF "bug" where 'have_rows' returned false 
     // in responses to Updates API calls where the 'coupons' repeater field
     // was being updated.
-    //elseif(have_rows('field_5dc31a02b5f81', $userID)) {
     if(have_rows('field_5dc31a02b5f81', $userID)) {
         while (have_rows('field_5dc31a02b5f81', $userID)) {
             the_row();
