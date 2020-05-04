@@ -16,109 +16,103 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
-defined('ABSPATH')or die('No script kiddies please!');
-defined('WCG_COOKIE_CODE')or define('WCG_COOKIE_CODE', 'wcg_code');
-defined('WCG_COOKIE_NAME')or define('WCG_COOKIE_NAME', 'wcg_name');
-defined('WCG_USERS_PER_PAGE')or define('WCG_USERS_PER_PAGE', 1000);
+defined('ABSPATH') or die('No script kiddies please!');
+defined('WCG_CODE_COOKIE')      or define('WCG_CODE_COOKIE', 'wcg_code');
+defined('WCG_REDIRECT_COOKIE')  or define('WCG_REDIRECT_COOKIE', 'wcg_redirect');
+defined('WCG_COOKIE_NAME')      or define('WCG_COOKIE_NAME', 'wcg_name');
+defined('WCG_USERS_PER_PAGE')   or define('WCG_USERS_PER_PAGE', 1000);
+
+defined('WCG_OOPS_PAGE')        or define('WCG_OOPS_PAGE', 'oops');
+defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
+
 define('WCG_TESTING', false);
 
-add_action('parse_request', 'check_query_string_coupon_code', 10);
+// add_action('parse_request', 'wcg_check_query_string_coupon_code', 10);
+add_action('parse_query', 'wcg_check_query_string_coupon_code', 10);
 
-function check_query_string_coupon_code()
+function wcg_check_query_string_coupon_code()
 {
-        
     global $current_user;
-    $cookie_code = WCG_COOKIE_CODE;
+    $coupon_cookie = WCG_CODE_COOKIE;
     $coupon_code = '';
+    $oops = WCG_OOPS_PAGE;
 
-    // if user is admin, allow thru to site
-    if (in_array('administrator', $current_user->roles) 
-            || is_admin() 
-            || is_login_page()
-            || is_thank_you_page()
-            || is_oops_page()
-            || is_catalog_page()
-      ){
-        output_testing_info('you are authorized');
-        //return;
-    } else if (array_key_exists('wcg', $_GET)) {
-        $coupon_code = trim($_GET['wcg']);
-        
-        // Check if the coupon code is valid
-        // If so, save the coupon code as a cookie
-        wcg_check_code_validity($coupon_code);
-        setcookie($cookie_code, $coupon_code);
-        wcg_check_page_access();
-        output_testing_info('query string has valid code: '. $coupon_code);
-    } else if (isset($_COOKIE[ $cookie_code ])) {
-        $coupon_code = $_COOKIE[ $cookie_code ];
-        
-        // Check if the coupon code is STILL valid
-        // If so, let them in
-        wcg_check_code_validity($coupon_code);
-        wcg_check_page_access();
-        output_testing_info('cookie has valid code: ' . $coupon_code); 
-    } else {
-        wcg_check_code_validity($coupon_code);
+    // if user is admin, let thru
+    if (in_array('administrator', $current_user->roles)){
+        return;
+    } elseif (is_page($oops)) {
+        return;
     }
-}
+    
+    // else check for code
+    if (isset($_GET['wcg'])) {
+        $coupon_code = trim($_GET['wcg']);
+        // $set_new_cookie = true;
+    } elseif (isset($_COOKIE[$coupon_cookie])) {
+        $coupon_code = $_COOKIE[$coupon_cookie];               
+    }
+        
+    // confirm code is valid
+    // will redirect to OOPS if not valid
+    // set 2 possible cookies
+    // wcg_check_code_validity($coupon_code, $set_new_cookie); 
+        wcg_check_code_validity($coupon_code);
+        
+    // when this is called, we've already confirmed the valid code
+    // $accessible = wcg_is_accessible_page($coupon_code);
+    wcg_is_accessible_page();
+    }
 
 function is_login_page() 
 {
-    return in_array($GLOBALS['pagenow'], array('wp-login.php', 'wp-register.php'));
+    // This is deprecated according to:
+    // https://wordpress.stackexchange.com/questions/12863/check-if-wp-login-is-current-page
+    // return in_array($GLOBALS['pagenow'], array('wp-login.php', 'wp-register.php'));
+    return $GLOBALS['pagenow'] === 'wp-login.php';
 }
 
-function is_thank_you_page() 
+
+// return true if page is allowed
+// redirect if page is not allowed
+function wcg_is_accessible_page() 
 {
-    $thank_you_page = get_thank_you_page();
-    $is_thank_you = strpos($_SERVER['REQUEST_URI'], $thank_you_page); 
-    return $is_thank_you;
+    // 'oops' = 163
+    // 'congrats' = 497
+    // delivery = 502
+    $allowable_pages = array(WCG_THANKYOU_PAGE, "delivery-information", "product");
+    $redirect_cookie = WCG_REDIRECT_COOKIE;
+    $redirect_to = "/";
+    if (isset($_COOKIE[$redirect_cookie])) {
+        $redirect_to = $_COOKIE[$redirect_cookie];
+}
+    $allowable_pages[] = $redirect_to;
+
+    $url_parts = explode('?', $_SERVER['REQUEST_URI'], 2);
+
+    // if (is_page($allowable_pages)) {
+    //     return true;
+    foreach ($allowable_pages as $page) {
+        $pos = strpos($url_parts[0], $page);
+        if ($pos !== false) {
+            return;
+}
 }
 
-function is_oops_page() 
-{
-    $oops_page = get_oops_page();
-    $is_oops_page = strpos($_SERVER['REQUEST_URI'], $oops_page);
-    return $is_oops_page;
-}
+    // if (is_product()) {
+    //     return true;
+    // } elseif (is_cart()) {
+    //     return true;
+    // } elseif (is_checkout()) {
+    //     return true;
+    // } elseif (is_front_page()) {
+    //     return true;
+    // } elseif (is_home()) {
+    //     return true;
+    // }
 
-function is_catalog_page()
-{
-    $catalog_page = get_catalog_page();
-    $is_catalog_page = strpos($_SERVER['REQUEST_URI'], $catalog_page);
-    return $is_catalog_page;
-}
-
-function get_thank_you_page() 
-{
-    return 'congrats';
-}
-
-function get_oops_page() 
-{
-    return 'oops';
-}
-
-function get_catalog_page()
-{
-    return 'catalog';
-}
-
-function wcg_check_page_access() 
-{
-    $url_parts = explode('?', $_SERVER[ 'REQUEST_URI' ], 2);
-
-    if (
-        in_array($url_parts[0], [ '/', '/delivery-information'])
-        || strpos($url_parts[0], '/product') == 0
-   ){
-        return;
-    } else {
-        wp_redirect(site_url());
+    wp_redirect(site_url($redirect_to));
         exit;
     }    
-    return true;
-}
 
 
 function wcg_check_code_validity($coupon_code)
@@ -126,36 +120,34 @@ function wcg_check_code_validity($coupon_code)
     // Check to see if 'coupon_code' is a valid coupon code
     $coupon = new WC_Coupon($coupon_code);
     $coupon_data = $coupon->get_data();
+    $coupon_cookie = WCG_CODE_COOKIE;
+    $redirect_cookie = WCG_REDIRECT_COOKIE;
 
-    if ($coupon_code == null) {
-        // No code was given
-        $oops_page = get_oops_page();
-        wp_redirect(site_url("/$oops_page/"));
+    if ($coupon_code == null || $coupon_data['id'] == 0) {
+        // No code / invalid code was given
+        $oops = WCG_OOPS_PAGE;
+        wp_redirect(site_url($oops));
         exit;
-    } else if ($coupon_data['id'] == 0) {
-        // Code was given, but is invalid/incomplete
-        $oops_page = get_oops_page();
-        wp_redirect(site_url("/$oops_page/"));
-        exit;
-    } else if ($coupon_data['usage_count'] >= $coupon_data['usage_limit']){
+    } elseif ($coupon_data['usage_count'] >= $coupon_data['usage_limit']){
         // Code is valid, but has reached usage limit
-        $thank_you_page = get_thank_you_page();
-        wp_redirect(site_url("/$thank_you_page/"));
+        $thanks = WCG_THANKYOU_PAGE;
+        wp_redirect(site_url($thanks));
         exit;
     }    
-}
 
-// For testing purposes only, will cause unexpected results if used in production
-function output_testing_info($text) 
-{
-    if (WCG_TESTING == true) {
-        ?>
-        <div style="color: white; background-color: #666; padding: 30px; text-align: right;">
-            <p style="margin-bottom:0;"><?php echo $text; ?></p>
-        </div>
-        <?php 
+    if (!isset($_COOKIE[$coupon_cookie])) {
+        // set cookie to expire (in a month)
+        $expire = time()+86400*30;
+        setcookie($coupon_cookie, $coupon_code, $expire);
+
+        $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
+        $coupon_data = wcg_get_coupon_data($coupon_code, null, $user_id);
+        if (isset($coupon_data['type'])) {
+            setcookie($redirect_cookie, $coupon_data['type'], $expire);
+        }
     }
 }
+
 
 // After a successful transaction, apply the coupon code
 // that was saved as a cookie to the Order. 
@@ -167,9 +159,8 @@ function wcg_mark_coupon_used($order_id)
     $order = new WC_Order($order_id);
     $order_items = $order->get_items();
 
-    $coupon_code = $_COOKIE[WCG_COOKIE_CODE];
+    $coupon_code = $_COOKIE[WCG_CODE_COOKIE];
     $order->apply_coupon($coupon_code);
-    // output_testing_info("Coupon '". $coupon_code. "' has been used!");
 
     $userID = wcg_get_customer_id_by_coupon_code($coupon_code);
 
@@ -466,10 +457,12 @@ function wcg_check_able_to_assign_coupon($userID)
     return false;
 }
 
-
+// This is likely outdated code now.
+// Artifact from when there was a single "coupon_code" field.
+// MGunn April 28, 2020
 function wcg_update_coupon_code($value, $user_id, $field)
 {
-    if ($value == 'createcoupon') {
+    if (strpos($value, 'createcoupon') === 0) {
         //$myvalue = $value . "xxxxxx";
         $id = substr($user_id, strrpos($user_id, '_') + 1);
         $user = get_user_by('id', $id);
@@ -870,8 +863,8 @@ function wcg_get_customer_id_by_coupon_code($coupon_code = null)
         $coupon_code = $coupon_code;
     } elseif (isset($_GET['wcg'])) {
         $coupon_code = $_GET['wcg'];
-    } elseif (isset($_COOKIE[ WCG_COOKIE_CODE ])) {
-        $coupon_code = $_COOKIE[ WCG_COOKIE_CODE ];
+    } elseif (isset($_COOKIE[ WCG_CODE_COOKIE ])) {
+        $coupon_code = $_COOKIE[ WCG_CODE_COOKIE ];
     } else {
         return false;
     }
