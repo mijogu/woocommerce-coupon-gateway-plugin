@@ -183,7 +183,7 @@ Authorization: Bearer {{token}}
         //"vehicle_id": "111111111",
         //"is_confirmed": false,
         //"coupon_code": "ee656f0eab2431df70be67e490063a74-1574278251-3349"
-        "coupon_code": "createcoupon|year03"
+        "coupon_code": "createcoupon|year01"
     }
 }
 

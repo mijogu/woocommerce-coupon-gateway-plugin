@@ -43,6 +43,9 @@ function wcg_check_query_string_coupon_code()
     } elseif (is_page($oops)) {
         return;
     }
+
+    // TO DO need to allow access to accessible pages earlier
+    
     
     // else check for code
     if (isset($_GET['wcg'])) {
@@ -59,7 +62,6 @@ function wcg_check_query_string_coupon_code()
     wcg_check_code_validity($coupon_code); 
 
     // when this is called, we've already confirmed the valid code
-    // $accessible = wcg_is_accessible_page($coupon_code);
     wcg_is_accessible_page();
 }
 
@@ -82,6 +84,8 @@ function wcg_is_accessible_page()
     $allowable_pages = array(WCG_THANKYOU_PAGE, "delivery-information", "product");
     $redirect_cookie = WCG_REDIRECT_COOKIE;
     $redirect_to = "/";
+    $access = false;
+
     if (isset($_COOKIE[$redirect_cookie])) {
         $redirect_to = $_COOKIE[$redirect_cookie];
     }
@@ -94,7 +98,8 @@ function wcg_is_accessible_page()
     foreach ($allowable_pages as $page) {
         $pos = strpos($url_parts[0], $page);
         if ($pos !== false) {
-            return;
+            $access = true;
+            break;
         }
     } 
     
@@ -110,8 +115,10 @@ function wcg_is_accessible_page()
     //     return true;
     // }
 
-    wp_redirect(site_url($redirect_to));
-    exit;
+    if (!$access) {
+        wp_redirect(site_url($redirect_to));
+        exit;
+    }
 }
 
 
