@@ -32,8 +32,10 @@ defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
 defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-information');
 
 
-// add_action('parse_request', 'wcg_check_query_string_coupon_code', 10);
-add_action('parse_query', 'wcg_check_query_string_coupon_code', 10);
+// Changing this from 'parse_request' to 'parse_query' seems to yield
+// unwanted results. COOKIES don't work on first page visit. 
+add_action('parse_request', 'wcg_check_query_string_coupon_code', 10);
+// add_action('parse_query', 'wcg_check_query_string_coupon_code', 10);
 
 function wcg_check_query_string_coupon_code()
 {    
@@ -41,21 +43,19 @@ function wcg_check_query_string_coupon_code()
     $coupon_cookie = WCG_CODE_COOKIE;
     $coupon_code = '';
     $oops = WCG_OOPS_PAGE;
+    $set_new_cookie = false;
 
     // if user is admin, let thru
     if (in_array('administrator', $current_user->roles)){
         return;
-    } elseif (is_page($oops)) {
+    } elseif (strpos($_SERVER['REQUEST_URI'], $oops) == 1) {
         return;
     }
-
-    // TO DO need to allow access to accessible pages earlier
-
     
     // else check for code
     if (isset($_GET['wcg'])) {
         $coupon_code = trim($_GET['wcg']);
-        // $set_new_cookie = true;
+        $set_new_cookie = true;
     } elseif (isset($_COOKIE[$coupon_cookie])) {
         $coupon_code = $_COOKIE[$coupon_cookie];               
     }
@@ -64,10 +64,10 @@ function wcg_check_query_string_coupon_code()
     // will redirect to OOPS if not valid
     // set 2 possible cookies
     // wcg_check_code_validity($coupon_code, $set_new_cookie); 
-    wcg_check_code_validity($coupon_code); 
+    $new_type_cookie = wcg_check_code_validity($coupon_code); 
 
     // when this is called, we've already confirmed the valid code
-    wcg_is_accessible_page();
+    wcg_is_accessible_page($new_type_cookie);
 }
 
 function is_login_page() 
@@ -79,51 +79,53 @@ function is_login_page()
 }
 
 
-// return true if page is allowed
-// redirect if page is not allowed
-function wcg_is_accessible_page() 
+// Return true if page is allowed
+// Redirect if page is not allowed
+// Using the $new_type_cookie param is necessary on the initial page visit
+function wcg_is_accessible_page($new_type_cookie = '') 
 {
-    // 'oops' = 163
-    // 'congrats' = 497
-    // delivery = 502
-    $allowable_pages = array(WCG_THANKYOU_PAGE, "delivery-information", "product");
+    $allowable_pages = array();
+
+    // $allowable_pages[] = WCG_OOPS_PAGE; // this isn't needed bc oops is checked earlier
+    $allowable_pages[] = WCG_THANKYOU_PAGE;
+    $allowable_pages[] = WCG_CHECKOUT_PAGE;
+    $allowable_pages[] = 'product';
+
+    // TO DO need to check Products for type/category
+
+    // $allowable_pages = array(, "", "product");
     $redirect_cookie = WCG_REDIRECT_COOKIE;
     $redirect_to = "/";
     $access = false;
-
-    if (isset($_COOKIE[$redirect_cookie])) {
+    if($new_type_cookie != '') { 
+        $redirect_to = $new_type_cookie;
+    } elseif (isset($_COOKIE[$redirect_cookie])) {
         $redirect_to = $_COOKIE[$redirect_cookie];
     }
     $allowable_pages[] = $redirect_to;
 
     $url_parts = explode('?', $_SERVER['REQUEST_URI'], 2);
 
-    // if (is_page($allowable_pages)) {
-    //     return true;
     foreach ($allowable_pages as $page) {
-        $pos = strpos($url_parts[0], $page);
-        if ($pos !== false) {
-            $access = true;
+        if ($page == "/") {
+            $access = $url_parts[0] == "/" ? true : false;
+            // $access = true;
             break;
+        } else {
+            $pos = strpos($url_parts[0], $page);
+            if ($pos !== false) {
+                $access = true;
+                break;
+            }
         }
     } 
-    
-    // if (is_product()) {
-    //     return true;
-    // } elseif (is_cart()) {
-    //     return true;
-    // } elseif (is_checkout()) {
-    //     return true;
-    // } elseif (is_front_page()) {
-    //     return true;
-    // } elseif (is_home()) {
-    //     return true;
-    // }
 
     if (!$access) {
         wp_redirect(site_url($redirect_to));
         exit;
     }
+
+    return true;
 }
 
 
@@ -134,6 +136,7 @@ function wcg_check_code_validity($coupon_code)
     $coupon_data = $coupon->get_data();
     $coupon_cookie = WCG_CODE_COOKIE;
     $redirect_cookie = WCG_REDIRECT_COOKIE;
+    $coupon_type = '';
 
     if ($coupon_code == null || $coupon_data['id'] == 0) {
         // No code / invalid code was given
@@ -156,8 +159,12 @@ function wcg_check_code_validity($coupon_code)
         $coupon_data = wcg_get_coupon_data($coupon_code, null, $user_id);
         if (isset($coupon_data['type'])) {
             setcookie($redirect_cookie, $coupon_data['type'], $expire);
+            $coupon_type = $coupon_data['type'];
         }
     }
+
+    // returns the coupon type when cookie is set
+    return $coupon_type;
 }
 
 
