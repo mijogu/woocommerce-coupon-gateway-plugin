@@ -17,15 +17,20 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 defined('ABSPATH') or die('No script kiddies please!');
+
+// Define $_COOKIE-related constants
 defined('WCG_CODE_COOKIE')      or define('WCG_CODE_COOKIE', 'wcg_code');
 defined('WCG_REDIRECT_COOKIE')  or define('WCG_REDIRECT_COOKIE', 'wcg_redirect');
 defined('WCG_COOKIE_NAME')      or define('WCG_COOKIE_NAME', 'wcg_name');
+
+// Define API related constants
 defined('WCG_USERS_PER_PAGE')   or define('WCG_USERS_PER_PAGE', 1000);
 
+// Define important endpoints
 defined('WCG_OOPS_PAGE')        or define('WCG_OOPS_PAGE', 'oops');
 defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
+defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-information');
 
-define('WCG_TESTING', false);
 
 // add_action('parse_request', 'wcg_check_query_string_coupon_code', 10);
 add_action('parse_query', 'wcg_check_query_string_coupon_code', 10);
