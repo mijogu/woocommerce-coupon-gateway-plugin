@@ -31,7 +31,6 @@ defined('WCG_OOPS_PAGE')        or define('WCG_OOPS_PAGE', 'oops');
 defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
 defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-information');
 
-
 // Changing this from 'parse_request' to 'parse_query' seems to yield
 // unwanted results. COOKIES don't work on first page visit. 
 add_action('parse_request', 'wcg_check_query_string_coupon_code', 10);
@@ -43,19 +42,18 @@ function wcg_check_query_string_coupon_code()
     $coupon_cookie = WCG_CODE_COOKIE;
     $coupon_code = '';
     $oops = WCG_OOPS_PAGE;
-    $set_new_cookie = false;
+    $thanks = WCG_THANKYOU_PAGE;
 
     // if user is admin, let thru
     if (in_array('administrator', $current_user->roles)){
         return;
-    } elseif (strpos($_SERVER['REQUEST_URI'], $oops) == 1) {
+    } elseif (strpos($_SERVER['REQUEST_URI'], $oops) == 1 || strpos($_SERVER['REQUEST_URI'], $thanks) == 1) {
         return;
     }
     
     // else check for code
     if (isset($_GET['wcg'])) {
         $coupon_code = trim($_GET['wcg']);
-        $set_new_cookie = true;
     } elseif (isset($_COOKIE[$coupon_cookie])) {
         $coupon_code = $_COOKIE[$coupon_cookie];               
     }
@@ -150,7 +148,7 @@ function wcg_check_code_validity($coupon_code)
         exit;
     }
 
-    if (!isset($_COOKIE[$coupon_cookie])) {
+    if (!isset($_COOKIE[$coupon_cookie]) || $_COOKIE[$coupon_cookie] != $coupon_code) {
         // set cookie to expire (in a month)
         $expire = time()+86400*30;
         setcookie($coupon_cookie, $coupon_code, $expire);
