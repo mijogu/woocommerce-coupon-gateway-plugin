@@ -1035,3 +1035,10 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
 
     return;
 }
+
+
+// Disable Ajax Call from WooCommerce Checkout
+add_action( 'wp_enqueue_scripts', 'wcg_dequeue_woocommerce_cart_fragments', 11); 
+function wcg_dequeue_woocommerce_cart_fragments() { 
+    wp_dequeue_script('wc-cart-fragments'); 
+} 
