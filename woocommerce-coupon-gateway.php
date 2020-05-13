@@ -45,7 +45,9 @@ function wcg_check_query_string_coupon_code()
     $thanks = WCG_THANKYOU_PAGE;
 
     // if user is admin, let thru
-    if (in_array('administrator', $current_user->roles)){
+    if (isset($_REQUEST['wc-ajax'])) {
+        return;
+    } elseif (in_array('administrator', $current_user->roles)){
         return;
     } elseif (strpos($_SERVER['REQUEST_URI'], $oops) == 1 || strpos($_SERVER['REQUEST_URI'], $thanks) == 1) {
         return;
