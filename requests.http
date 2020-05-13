@@ -6,8 +6,9 @@
     # VS Code "Rest Client extension" which can be found here:
     # https://github.com/Huachao/vscode-restclient
 
-@host = http://gated-woocommerce.local
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZC13b29jb21tZXJjZS5sb2NhbCIsImlhdCI6MTU4ODI4MTAwNiwibmJmIjoxNTg4MjgxMDA2LCJleHAiOjE1ODg4ODU4MDYsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.7UqaPSGYwBu_YkX27PYwHBGMcvajpboX8jq6C0YHVGQ
+#@host = http://gated-woocommerce.local
+@host = https://carvana-ontheroad.local
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvY2FydmFuYS1vbnRoZXJvYWQubG9jYWwiLCJpYXQiOjE1ODkzOTQ0MzAsIm5iZiI6MTU4OTM5NDQzMCwiZXhwIjoxNTg5OTk5MjMwLCJkYXRhIjp7InVzZXIiOnsiaWQiOiIzMzQxIn19fQ.hoV4kKr0gxTQb2g1pNAM05K8WxRnj9lCuvH8e4SY0KI
 
 # @host = http://gatedsite1.visagedevsite.info
 # @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU3MDcyODg2NCwibmJmIjoxNTcwNzI4ODY0LCJleHAiOjE1NzEzMzM2NjQsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.l-BtIqAmI6sNuCILhfy6YPPzVx9mMX8UG2cS8qdTYIg
@@ -28,7 +29,7 @@
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-@userid = 3353
+@userid = 3341
 @carvanauid = C2654133-19A1-4AF8-ABEA-2D3920F65B28
 
 
@@ -184,6 +185,7 @@ Authorization: Bearer {{token}}
         //"is_confirmed": false,
         //"coupon_code": "ee656f0eab2431df70be67e490063a74-1574278251-3349"
         "coupon_code": "createcoupon|year01"
+        //"coupon_code": "createcoupon"
     }
 }
 
