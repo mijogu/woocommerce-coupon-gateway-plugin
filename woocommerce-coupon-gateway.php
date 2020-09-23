@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce Coupon Gateway
  * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
- * Version: 1.15.2
+ * Version: 1.16
  * Author: DarnGood LLC
  * Text Domain: woocommerce-coupon-gateway
  * License: GPLv2
@@ -27,6 +27,7 @@ defined('WCG_COOKIE_NAME')      or define('WCG_COOKIE_NAME', 'wcg_name');
 defined('WCG_USERS_PER_PAGE')   or define('WCG_USERS_PER_PAGE', 1000);
 
 // Define important endpoints
+defined('WCG_WELCOME_PAGE')     or define('WCG_WELCOME_PAGE', 'welcome');
 defined('WCG_OOPS_PAGE')        or define('WCG_OOPS_PAGE', 'oops');
 defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
 defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-information');
@@ -43,13 +44,18 @@ function wcg_check_query_string_coupon_code()
     $coupon_code = '';
     $oops = WCG_OOPS_PAGE;
     $thanks = WCG_THANKYOU_PAGE;
+    $welcome = WCG_WELCOME_PAGE;
 
     // if user is admin, let thru
     if (isset($_REQUEST['wc-ajax'])) {
         return;
     } elseif (in_array('administrator', $current_user->roles)){
         return;
-    } elseif (strpos($_SERVER['REQUEST_URI'], $oops) == 1 || strpos($_SERVER['REQUEST_URI'], $thanks) == 1) {
+    } elseif (
+        strpos($_SERVER['REQUEST_URI'], $oops) == 1 || 
+        strpos($_SERVER['REQUEST_URI'], $thanks) == 1 ||
+        strpos($_SERVER['REQUEST_URI'], $welcome) == 1 
+        ) {
         return;
     }
     
