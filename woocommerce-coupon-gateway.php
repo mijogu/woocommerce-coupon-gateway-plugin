@@ -35,7 +35,6 @@ defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-informa
 // Changing this from 'parse_request' to 'parse_query' seems to yield
 // unwanted results. COOKIES don't work on first page visit. 
 add_action('parse_request', 'wcg_check_query_string_coupon_code', 10);
-// add_action('parse_query', 'wcg_check_query_string_coupon_code', 10);
 
 function wcg_check_query_string_coupon_code()
 {    
@@ -1048,3 +1047,40 @@ add_action( 'wp_enqueue_scripts', 'wcg_dequeue_woocommerce_cart_fragments', 11);
 function wcg_dequeue_woocommerce_cart_fragments() { 
     wp_dequeue_script('wc-cart-fragments'); 
 } 
+
+
+// add_filter( 'rest_pre_dispatch', 'wcg_filter_api_requests', 0, 3 );
+// add_filter('rest_dispatch_request', 'wcg_filter_api_requests', 0, 3 );
+// add_filter( 'rest_request_before_callbacks', 'wcg_filter_api_requests', 0, 3 );
+
+
+
+/**
+ * Filter the standard update endpoint for products.
+ * so that only specific fields can be updated. 
+ */
+add_filter( "woocommerce_rest_pre_insert_product_object", 'wcg_filter_rest_product_fields', 1, 2 ); 
+function wcg_filter_rest_product_fields( $product, $request ) 
+{ 
+    $fields_ok_to_change = array('regular_price'); 
+    
+    // get original product data
+    $original_product = wc_get_product($product->id);
+    $original_data = $original_product->get_data();
+    
+    // get the scheduled changes
+    $changes = $product->get_changes();
+    $mychanges = array(); 
+
+    foreach($changes as $key=>$val) {
+        if (
+            !in_array($key, $fields_ok_to_change) &&
+            in_array($key, $original_data)
+        ) {
+            $mychanges[$key] = $original_data[$key];
+        }
+    }
+
+    $product->set_props($mychanges);
+    return $product; 
+}; 
