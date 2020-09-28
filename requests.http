@@ -6,9 +6,10 @@
     # VS Code "Rest Client extension" which can be found here:
     # https://github.com/Huachao/vscode-restclient
 
-#@host = http://gated-woocommerce.local
-@host = https://carvana-ontheroad.local
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvY2FydmFuYS1vbnRoZXJvYWQubG9jYWwiLCJpYXQiOjE1ODkzOTQ0MzAsIm5iZiI6MTU4OTM5NDQzMCwiZXhwIjoxNTg5OTk5MjMwLCJkYXRhIjp7InVzZXIiOnsiaWQiOiIzMzQxIn19fQ.hoV4kKr0gxTQb2g1pNAM05K8WxRnj9lCuvH8e4SY0KI
+# @host = http://gated-woocommerce.local
+# @host = https://carvana-ontheroad.local
+@host = https://atlas.local
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXRsYXMubG9jYWwiLCJpYXQiOjE2MDA5OTA0MzYsIm5iZiI6MTYwMDk5MDQzNiwiZXhwIjoxNjAxNTk1MjM2LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIzMzQxIn19fQ.QxIx30Wf0OjNXFN5Alrp3ZScjo5aYe_topau0B8HD2E
 
 # @host = http://gatedsite1.visagedevsite.info
 # @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU3MDcyODg2NCwibmJmIjoxNTcwNzI4ODY0LCJleHAiOjE1NzEzMzM2NjQsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.l-BtIqAmI6sNuCILhfy6YPPzVx9mMX8UG2cS8qdTYIg
@@ -31,6 +32,8 @@
 @password = Password123!&*
 @userid = 3341
 @carvanauid = C2654133-19A1-4AF8-ABEA-2D3920F65B28
+
+@product_id = 1362
 
 
 ########################################################
@@ -224,6 +227,42 @@ Authorization: Bearer {{token}}
 GET {{host}}/wp-json/wp/v2/users?filter[meta_key]=carvana_uid&filter[meta_value]={{carvanauid}}
 content-type: application/json
 Authorization: Bearer {{token}}
+
+
+##########################################
+### GET LIST OF PRODUCTS
+##########################################
+    # This endpoint will retrieve a list of all Products.
+
+GET {{host}}/wp-json/wc/v3/products
+content-type: application/json
+Authorization: Bearer {{token}}
+
+
+##########################################
+### GET A PRODUCT
+##########################################
+    # This endpoint will retrieve a single Product.
+
+GET {{host}}/wp-json/wc/v3/products/{{product_id}}
+content-type: application/json
+Authorization: Bearer {{token}}
+
+##########################################
+### UPDATE PRODUCT [PRICE ONLY]
+##########################################
+    # This endpoint will update a Product.
+    # Only the Price field is able to be updated, all other data is locked.
+
+POST {{host}}/wp-json/wc/v3/products/{{product_id}}
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "regular_price" : "50"
+}
+
+
 
 
 
