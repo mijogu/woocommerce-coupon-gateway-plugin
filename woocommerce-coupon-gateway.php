@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce Coupon Gateway
  * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
- * Version: 1.16
+ * Version: 1.17
  * Author: DarnGood LLC
  * Text Domain: woocommerce-coupon-gateway
  * License: GPLv2
@@ -40,10 +40,12 @@ function wcg_check_query_string_coupon_code()
 {    
     global $current_user;
     $coupon_cookie = WCG_CODE_COOKIE;
-    $coupon_code = '';
     $oops = WCG_OOPS_PAGE;
     $thanks = WCG_THANKYOU_PAGE;
     $welcome = WCG_WELCOME_PAGE;
+    
+    $coupon_code = null;
+    $new_type_cookie = null;
 
     // if user is admin, let thru
     if (isset($_REQUEST['wc-ajax'])) {
@@ -58,18 +60,38 @@ function wcg_check_query_string_coupon_code()
         return;
     }
     
-    // else check for code
-    if (isset($_GET['wcg'])) {
-        $coupon_code = trim($_GET['wcg']);
-    } elseif (isset($_COOKIE[$coupon_cookie])) {
-        $coupon_code = $_COOKIE[$coupon_cookie];               
-    }
+    // check if not logged in
+    if ($current_user->ID === 0) {
+        // else check for code
+        if (isset($_GET['wcg'])) {
+            $coupon_code = trim($_GET['wcg']);
+        } elseif (isset($_COOKIE[$coupon_cookie])) {
+            $coupon_code = $_COOKIE[$coupon_cookie];               
+        }
+        
+        // redirect to Oops page if no code found (and no user logged in)
+        if (is_null($coupon_code)) {
+            wp_redirect($oops);
+            exit;
+        }
+        
+        // check code is valid 
+        // confirm code is valid
+        // will redirect to OOPS if not valid
+        // set 2 possible cookies
+        // wcg_check_code_validity($coupon_code, $set_new_cookie); 
+        $new_type_cookie = wcg_check_code_validity($coupon_code); 
 
-    // confirm code is valid
-    // will redirect to OOPS if not valid
-    // set 2 possible cookies
-    // wcg_check_code_validity($coupon_code, $set_new_cookie); 
-    $new_type_cookie = wcg_check_code_validity($coupon_code); 
+        // get user ID from coupon code
+        // confirm coupon code / user
+        $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
+        $user = get_user_by( 'id', $user_id );
+
+        // login as this user
+        wp_set_current_user( $user_id, $user->user_login );
+        wp_set_auth_cookie( $user_id );
+        do_action( 'wp_login', $user->user_login, $user );
+    }
 
     // when this is called, we've already confirmed the valid code
     wcg_is_accessible_page($new_type_cookie);
@@ -87,7 +109,7 @@ function is_login_page()
 // Return true if page is allowed
 // Redirect if page is not allowed
 // Using the $new_type_cookie param is necessary on the initial page visit
-function wcg_is_accessible_page($new_type_cookie = '') 
+function wcg_is_accessible_page($new_type_cookie = null) 
 {
     $allowable_pages = array();
 
@@ -98,11 +120,10 @@ function wcg_is_accessible_page($new_type_cookie = '')
 
     // TO DO need to check Products for type/category
 
-    // $allowable_pages = array(, "", "product");
     $redirect_cookie = WCG_REDIRECT_COOKIE;
     $redirect_to = "/";
     $access = false;
-    if($new_type_cookie != '') { 
+    if(!is_null($new_type_cookie)) { 
         $redirect_to = $new_type_cookie;
     } elseif (isset($_COOKIE[$redirect_cookie])) {
         $redirect_to = $_COOKIE[$redirect_cookie];
