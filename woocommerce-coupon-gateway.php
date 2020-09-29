@@ -408,7 +408,7 @@ add_action('rest_api_init', 'wcg_api_init');
 
 function wcg_api_init()
 {
-    $custom_meta_fields = array(
+    $custom_user_fields = array(
         'carvana_uid',
         'first_name',
         'last_name',
@@ -423,13 +423,13 @@ function wcg_api_init()
         'products_selected',
     );
 
-    foreach ($custom_meta_fields as $field){
-        switch ($field) :
+    foreach ($custom_user_fields as $user_field){
+        switch ($user_field) :
             case 'products_viewed':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
-                    $field,
+                    $user_field,
                     array(
                         'get_callback'      => 'wcg_get_user_products_viewed_cb',
                         'update_callback'   => null
@@ -440,7 +440,7 @@ function wcg_api_init()
                 // Update will not allow updating all fields directly
                 register_rest_field(
                     'user',
-                    $field,
+                    $user_field,
                     array(
                         'get_callback'      => 'wcg_get_user_coupons_cb',
                         'update_callback'   => 'wcg_update_user_coupons_cb'
@@ -451,7 +451,7 @@ function wcg_api_init()
                 // Field does not support UPDATE, only GET
                 register_rest_field(
                     'user',
-                    $field,
+                    $user_field,
                     array(
                         'get_callback'      => 'wcg_get_user_products_selected_cb',
                         'update_callback'   => null
@@ -461,7 +461,7 @@ function wcg_api_init()
             default: 
                 register_rest_field(
                     'user', 
-                    $field, 
+                    $user_field, 
                     array(
                         'get_callback'      => 'wcg_get_usermeta_cb',
                         'update_callback'   => 'wcg_update_usermeta_cb'
