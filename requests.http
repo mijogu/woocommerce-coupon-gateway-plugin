@@ -30,7 +30,7 @@
 @phone = 7775558888
 @coupon_code = createcoupon
 @password = Password123!&*
-@userid = 3341
+@userid = 3639
 @carvanauid = C2654133-19A1-4AF8-ABEA-2D3920F65B28
 
 @product_id = 1362
@@ -134,10 +134,11 @@ Authorization: Bearer {{token}}
     "zip":          "{{zip}}",
     "phone":        "{{phone}}",
     "coupons": {
-        "coupon_status": "cancelled",
+        //"coupon_status": "cancelled",
         //"is_confirmed": "yes",
         //"vehicle_id": "12345"
-        "coupon_code": "f606dae8fb461b6bcf53347c671af416-1573681686-3352"
+        //"coupon_code": "f606dae8fb461b6bcf53347c671af416-1573681686-3352"
+        "coupon_code": "createcoupon|year01"
     }
 }
 
