@@ -26,11 +26,13 @@ defined('WCG_COOKIE_NAME')      or define('WCG_COOKIE_NAME', 'wcg_name');
 // Define API related constants
 defined('WCG_USERS_PER_PAGE')   or define('WCG_USERS_PER_PAGE', 1000);
 
-// Define important endpoints
+// Define important page routes
 defined('WCG_WELCOME_PAGE')     or define('WCG_WELCOME_PAGE', 'welcome');
 defined('WCG_OOPS_PAGE')        or define('WCG_OOPS_PAGE', 'oops');
 defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
 defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-information');
+
+defined('WCG_CLIENT_BRANDING')  or define('WCG_CLIENT_BRANDING', false);
 
 // Changing this from 'parse_request' to 'parse_query' seems to yield
 // unwanted results. COOKIES don't work on first page visit. 
@@ -430,7 +432,6 @@ add_action('rest_api_init', 'wcg_api_init');
 function wcg_api_init()
 {
     $custom_user_fields = array(
-        'carvana_uid',
         'first_name',
         'last_name',
         'address_1',
@@ -447,6 +448,15 @@ function wcg_api_init()
     // If Account Funds plugin is found, include account_funds in api response
     if (class_exists('WC_Account_Funds')) {
         $custom_user_fields[] = 'account_funds';
+    }
+
+    // 'carvana_uid' was changed to 'custom_uid'.
+    // this provides backwards compatibility for original Carvana site.
+    // shouldn't need to change the ACF field. 
+    if (WCG_CLIENT_BRANDING === 'carvana') {
+        array_unshift($custom_user_fields,"carvana_uid");
+    } else {
+        array_unshift($custom_user_fields,"custom_uid");
     }
 
     foreach ($custom_user_fields as $user_field){
