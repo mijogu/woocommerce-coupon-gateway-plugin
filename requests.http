@@ -175,6 +175,8 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
+    //"custom_uid" : "mikecustomid"
+    "carvana_uid" : "carvana"
     //"first_name" :  "{{first_name}}",
     //"last_name" :   "{{last_name}}",
     //"address_1" :   "{{address_1}}",
@@ -183,14 +185,14 @@ Authorization: Bearer {{token}}
     //"state":        "{{state}}",
     //"zip":          "{{zip}}",
     //"phone":        "{{phone}}",
-    "coupons": {
+    //"coupons": {
         //"coupon_status": "cancelled",
         //"vehicle_id": "111111111",
         //"is_confirmed": false,
         //"coupon_code": "ee656f0eab2431df70be67e490063a74-1574278251-3349"
-        "coupon_code": "createcoupon|year01"
+        //"coupon_code": "createcoupon|year01"
         //"coupon_code": "createcoupon"
-    }
+    //}
 }
 
 ##########################################
