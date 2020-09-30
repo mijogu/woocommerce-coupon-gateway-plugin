@@ -444,6 +444,11 @@ function wcg_api_init()
         'products_selected',
     );
 
+    // If Account Funds plugin is found, include account_funds in api response
+    if (class_exists('WC_Account_Funds')) {
+        $custom_user_fields[] = 'account_funds';
+    }
+
     foreach ($custom_user_fields as $user_field){
         switch ($user_field) :
             case 'products_viewed':
