@@ -4,8 +4,8 @@
     "fields": [
         {
             "key": "field_5d9cd52debf0f",
-            "label": "carvana uid",
-            "name": "carvana_uid",
+            "label": "custom uid",
+            "name": "custom_uid",
             "type": "text",
             "instructions": "",
             "required": 0,
@@ -590,7 +590,7 @@
     "label_placement": "top",
     "instruction_placement": "label",
     "hide_on_screen": "",
-    "active": 1,
+    "active": true,
     "description": "",
-    "modified": 1588273627
+    "modified": 1601491018
 }
