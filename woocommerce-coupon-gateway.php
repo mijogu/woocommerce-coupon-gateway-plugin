@@ -939,6 +939,7 @@ function wcg_modify_rest_user_response($response, $user, $request)
     unset($response->data['roles']);
     unset($response->data['capabilities']);
     unset($response->data['extra_capabilities']);
+    unset($response->data['woocommerce_meta']);
     return $response;
 }
 
