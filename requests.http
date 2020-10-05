@@ -6,10 +6,10 @@
     # VS Code "Rest Client extension" which can be found here:
     # https://github.com/Huachao/vscode-restclient
 
-# @host = http://gated-woocommerce.local
+#@host = http://gated-woocommerce.local
 # @host = https://carvana-ontheroad.local
-@host = https://atlas.local
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXRsYXMubG9jYWwiLCJpYXQiOjE2MDA5OTA0MzYsIm5iZiI6MTYwMDk5MDQzNiwiZXhwIjoxNjAxNTk1MjM2LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIzMzQxIn19fQ.QxIx30Wf0OjNXFN5Alrp3ZScjo5aYe_topau0B8HD2E
+@host = https://dev.carvanaowntheroad.com/
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvZGV2LmNhcnZhbmFvd250aGVyb2FkLmNvbSIsImlhdCI6MTYwMTkxNTI1NiwibmJmIjoxNjAxOTE1MjU2LCJleHAiOjE2MDI1MjAwNTYsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.lFdfKVIDca-cYE-JL3fWZtFKZGcgNlu-AsvIMmJ5UgM
 
 # @host = http://gatedsite1.visagedevsite.info
 # @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU3MDcyODg2NCwibmJmIjoxNTcwNzI4ODY0LCJleHAiOjE1NzEzMzM2NjQsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.l-BtIqAmI6sNuCILhfy6YPPzVx9mMX8UG2cS8qdTYIg
@@ -69,9 +69,9 @@ GET {{host}}/wp-json/wp/v2/users HTTP/1.1
 content-type: application/json
 Authorization: Bearer {{token}}
 
-# {
-#     "custom_per_page": "100"
-# }
+{
+    "custom_per_page": "10"
+}
 
 
 
@@ -138,7 +138,7 @@ Authorization: Bearer {{token}}
         //"is_confirmed": "yes",
         //"vehicle_id": "12345"
         //"coupon_code": "f606dae8fb461b6bcf53347c671af416-1573681686-3352"
-        "coupon_code": "createcoupon|year01"
+        "coupon_code": "createcoupon"
     }
 }
 
@@ -190,7 +190,7 @@ Authorization: Bearer {{token}}
         //"vehicle_id": "111111111",
         //"is_confirmed": false,
         //"coupon_code": "ee656f0eab2431df70be67e490063a74-1574278251-3349"
-        //"coupon_code": "createcoupon|year01"
+        "coupon_code": "createcoupon"
         //"coupon_code": "createcoupon"
     //}
 }
