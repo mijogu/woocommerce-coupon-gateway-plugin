@@ -353,7 +353,7 @@ function wcg_custom_redirect_after_purchase()
 {
 	global $wp;
 	if (is_checkout() && !empty($wp->query_vars['order-received'])) {
-        $thank_you_page = get_thank_you_page();
+        $thank_you_page = WCG_THANKYOU_PAGE;
         wp_redirect(site_url("/$thank_you_page/"));
 		exit;
 	}
