@@ -1122,3 +1122,12 @@ function wcg_filter_rest_product_fields( $product, $request )
     $product->set_props($mychanges);
     return $product; 
 }; 
+
+// Add Coupon Type/Category to body classes
+add_filter( 'body_class', 'wcg_add_coupon_type_to_body_class');
+function wcg_add_coupon_type_to_body_class( $classes ) 
+{
+    $cat = isset($_COOKIE[WCG_REDIRECT_COOKIE]) ? $_COOKIE[WCG_REDIRECT_COOKIE] : 'none';
+    $classes[] = "coupon-category-$cat";
+    return $classes;
+}
