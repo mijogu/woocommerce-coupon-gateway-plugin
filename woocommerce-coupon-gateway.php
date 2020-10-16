@@ -33,6 +33,7 @@ defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
 defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-information');
 
 defined('WCG_CLIENT_BRANDING')  or define('WCG_CLIENT_BRANDING', false);
+defined('WCG_CART_LIMIT')       or define('WCG_CART_LIMIT', 1);
 
 // Changing this from 'parse_request' to 'parse_query' seems to yield
 // unwanted results. COOKIES don't work on first page visit. 
@@ -369,7 +370,7 @@ function wcg_remove_cart_item_before_add_to_cart($passed, $product_id, $quantity
     );
         add_row('products_selected', $row, "user_$user_id");
 
-    if (!WC()->cart->is_empty()) {
+    if (WCG_CART_LIMIT === 1 && !WC()->cart->is_empty()) {
         WC()->cart->empty_cart();
     }
     return $passed;
