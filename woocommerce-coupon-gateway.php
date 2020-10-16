@@ -67,33 +67,36 @@ function wcg_check_query_string_coupon_code()
         wcg_process_coupon_code_url();
     }
 
-    // check if not logged in
-    if ($current_user->ID === 0) {
-        // else check for code
-        if (isset($_GET['wcg'])) {
-            $coupon_code = trim($_GET['wcg']);
-        } elseif (isset($_COOKIE[$coupon_cookie])) {
-            $coupon_code = $_COOKIE[$coupon_cookie];               
-        }
+    // if we made it this far, we can rely on cookie being set
+    $coupon_code = isset($_COOKIE[$coupon_cookie]) ? $_COOKIE[$coupon_cookie] : null;
         
-        // redirect to Oops page if no code found (and no user logged in)
-        if (is_null($coupon_code)) {
-            wp_redirect($oops);
-            exit;
-        }
+    // redirect to Oops page if no code found (and no user logged in)
+    if (is_null($coupon_code)) {
+        wp_redirect($oops);
+        exit;
+    }
         
-        // check code is valid 
-        // confirm code is valid
-        // will redirect to OOPS if not valid
-        // set 2 possible cookies
-        // wcg_check_code_validity($coupon_code, $set_new_cookie); 
-        $new_type_cookie = wcg_check_code_validity($coupon_code); 
+    // check code is valid 
+    // confirm code is valid
+    // will redirect to OOPS if not valid
+    // set 2 possible cookies
+    // wcg_check_code_validity($coupon_code, $set_new_cookie); 
+    wcg_check_code_validity($coupon_code); 
 
-        // get user ID from coupon code
-        // confirm coupon code / user
-        $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
-        $user = get_user_by( 'id', $user_id );
+    // get user ID from coupon code
+    // confirm coupon code / user
+    $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
+    $user = get_user_by( 'id', $user_id );
 
+    // if the wrong user is logged in, log them out
+    if ($current_user->ID != 0 && $current_user->ID != $user_id) {
+        wp_destroy_current_session();
+        wp_clear_auth_cookie();
+        wp_set_current_user( 0 );
+    }
+        
+    // if the logged in user isn't the user 
+    if ($current_user->ID == 0) {
         // login as this user
         wp_set_current_user( $user_id, $user->user_login );
         wp_set_auth_cookie( $user_id );
@@ -101,7 +104,7 @@ function wcg_check_query_string_coupon_code()
     }
 
     // when this is called, we've already confirmed the valid code
-    wcg_is_accessible_page($new_type_cookie);
+    wcg_is_accessible_page();
 }
 
 // Process coupon code
@@ -153,7 +156,7 @@ function is_login_page()
 // Return true if page is allowed
 // Redirect if page is not allowed
 // Using the $new_type_cookie param is necessary on the initial page visit
-function wcg_is_accessible_page($new_type_cookie = null) 
+function wcg_is_accessible_page() 
 {
     $allowable_pages = array();
 
@@ -165,13 +168,9 @@ function wcg_is_accessible_page($new_type_cookie = null)
     // TO DO need to check Products for type/category
 
     $redirect_cookie = WCG_REDIRECT_COOKIE;
-    $redirect_to = "/";
+    $redirect_to = isset($_COOKIE[$redirect_cookie]) ? $_COOKIE[$redirect_cookie] : '/';
     $access = false;
-    if(!is_null($new_type_cookie)) { 
-        $redirect_to = $new_type_cookie;
-    } elseif (isset($_COOKIE[$redirect_cookie])) {
-        $redirect_to = $_COOKIE[$redirect_cookie];
-    }
+    
     $allowable_pages[] = $redirect_to;
 
     $url_parts = explode('?', $_SERVER['REQUEST_URI'], 2);
@@ -204,9 +203,6 @@ function wcg_check_code_validity($coupon_code)
     // Check to see if 'coupon_code' is a valid coupon code
     $coupon = new WC_Coupon($coupon_code);
     $coupon_data = $coupon->get_data();
-    $coupon_cookie = WCG_CODE_COOKIE;
-    $redirect_cookie = WCG_REDIRECT_COOKIE;
-    $coupon_type = '';
 
     if ($coupon_code == null || $coupon_data['id'] == 0) {
         // No code / invalid code was given
@@ -219,22 +215,6 @@ function wcg_check_code_validity($coupon_code)
         wp_redirect(site_url($thanks));
         exit;
     }
-
-    if (!isset($_COOKIE[$coupon_cookie]) || $_COOKIE[$coupon_cookie] != $coupon_code) {
-        // set cookie to expire (in a month)
-        $expire = time()+86400*30;
-        setcookie($coupon_cookie, $coupon_code, $expire);
-
-        $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
-        $coupon_data = wcg_get_coupon_data($coupon_code, null, $user_id);
-        if (isset($coupon_data['type'])) {
-            setcookie($redirect_cookie, $coupon_data['type'], $expire);
-            $coupon_type = $coupon_data['type'];
-        }
-    }
-
-    // returns the coupon type when cookie is set
-    return $coupon_type;
 }
 
 
