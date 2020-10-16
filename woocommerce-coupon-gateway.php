@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce Coupon Gateway
  * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
- * Version: 1.18
+ * Version: 1.19
  * Author: DarnGood LLC
  * Text Domain: woocommerce-coupon-gateway
  * License: GPLv2
