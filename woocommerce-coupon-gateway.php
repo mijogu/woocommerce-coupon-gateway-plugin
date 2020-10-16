@@ -271,7 +271,7 @@ function wcg_was_address_changed($order_address, $user_id)
 // By default, will search by coupon_code
 // else it will search by vehicle_id. 
 // Returns all current data for coupon, including the row_number.
-function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
+function wcg_get_coupon_data($coupon_code = null, $vehicle_id = null, $user_id = null)
 {    
     $field_name = null;
     $field_value = null;
@@ -315,8 +315,8 @@ function wcg_get_coupon_data($coupon_code, $vehicle_id, $user_id)
 
     // throw error if there's no row to change
     if ($row_number == 0) {
-        return new WP_ERROR('coupon_not_found', 'Could not locate this coupon for this user.');
-        // throw new \Exception('Could not locate this coupon for this user.');
+        // return new WP_ERROR('coupon_not_found', 'Could not locate this coupon for this user.');
+        return null;
     }
 
     // other fields not being returned: product_id, product_name, is_address_changed, date_last_updated
