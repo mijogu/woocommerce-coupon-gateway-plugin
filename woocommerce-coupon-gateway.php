@@ -47,22 +47,26 @@ function wcg_check_query_string_coupon_code()
     $thanks = WCG_THANKYOU_PAGE;
     $welcome = WCG_WELCOME_PAGE;
     
-    $coupon_code = null;
     $new_type_cookie = null;
 
-    // if user is admin, let thru
     if (isset($_REQUEST['wc-ajax'])) {
+        // let ajax calls thru
         return;
     } elseif (in_array('administrator', $current_user->roles)){
+        // let admin thru
         return;
     } elseif (
+        // let specific pages thru
         strpos($_SERVER['REQUEST_URI'], $oops) == 1 || 
         strpos($_SERVER['REQUEST_URI'], $thanks) == 1 ||
         strpos($_SERVER['REQUEST_URI'], $welcome) == 1 
         ) {
         return;
+    } elseif (isset($_GET['wcg']) && trim($_GET['wcg']) != '') {
+        // strip wcg from URL and redirect
+        wcg_process_coupon_code_url();
     }
-    
+
     // check if not logged in
     if ($current_user->ID === 0) {
         // else check for code
@@ -98,6 +102,43 @@ function wcg_check_query_string_coupon_code()
 
     // when this is called, we've already confirmed the valid code
     wcg_is_accessible_page($new_type_cookie);
+}
+
+// Process coupon code
+// removes WCG param from URI and redirects
+function wcg_process_coupon_code_url()
+{
+    // set cookies
+    $coupon_cookie = WCG_CODE_COOKIE;
+    $redirect_cookie = WCG_REDIRECT_COOKIE;
+
+    $coupon_code = trim($_GET['wcg']);
+    if (!$coupon_code) return;
+
+    $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
+    $coupon_data = wcg_get_coupon_data($coupon_code, null, $user_id);
+    $redirect_to = isset($coupon_data['type']) ? $coupon_data['type'] : '';
+    $expire = time()+86400*30; // set cookie to expire (in a month)
+
+    // set coupon cookie?
+    if (!isset($_COOKIE[$coupon_cookie]) || $_COOKIE[$coupon_cookie] != $coupon_code) {
+        setcookie($coupon_cookie, $coupon_code, $expire);
+    }
+    // set redirect cookie?
+    if (!isset($_COOKIE[$redirect_cookie]) || $_COOKIE[$redirect_cookie] != $redirect_to) {
+        setcookie($redirect_cookie, $redirect_to, $expire);
+    }
+    
+    // strip out code from URL and redirect
+    $url = $_SERVER['REQUEST_URI'];
+    $parsed_url = parse_url($url);
+    $redirect_to = $parsed_url['path'];
+    parse_str($parsed_url['query'], $params);
+
+    unset($params['wcg']);
+    $redirect_to .= !empty($params) ? '?' . http_build_query($params) : '';
+    wp_redirect($redirect_to);
+    exit;
 }
 
 function is_login_page() 
