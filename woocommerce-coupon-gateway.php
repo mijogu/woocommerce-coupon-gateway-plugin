@@ -548,14 +548,14 @@ function wcg_update_coupon_code($value, $user_id, $field)
         //$myvalue = $value . "xxxxxx";
         $id = substr($user_id, strrpos($user_id, '_') + 1);
         $user = get_user_by('id', $id);
-        $value = generate_coupon($user->user_email, $id);
+        $value = wcg_generate_coupon_for_user($user->user_email, $id);
     }
-    return $value;    
+    return $value;
 }
 add_filter('acf/update_value/name=coupon_code', 'wcg_update_coupon_code', 10, 3);
 
 
-function generate_coupon($email, $user_id)
+function wcg_generate_coupon_for_user($email, $user_id)
 {
     // Generate coupon code from hashed email address
     // This should guarantee uniqueness, since there 
@@ -756,7 +756,7 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
         }
         
         $email = $user->data->user_email;
-        $new_coupon_code = generate_coupon($email, $user->ID);
+        $new_coupon_code = wcg_generate_coupon_for_user($email, $user->ID);
         // if status not specified when creating coupon,
         // set to 'registered'.
         if ($new_coupon_status == null) $new_coupon_status = 'registered';
