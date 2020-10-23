@@ -1152,3 +1152,36 @@ function wcg_add_coupon_type_to_body_class( $classes )
     $classes[] = "coupon-category-$cat";
     return $classes;
 }
+
+
+// For use with the "IMPORT AND EXPORTS USERS AND CUSTOMERS" plugin.
+// Generates coupon codes for users during import.
+// Must supply field "coupon_code" with "createcoupon" or "createcoupone|{coupontype}" to work properly.
+add_action( 'post_acui_import_single_user', 'wcg_generate_coupons_after_user_import', 1, 4 );
+function wcg_generate_coupons_after_user_import( $headers, $data, $user_id, $role ) { 
+
+    $coupon_code = get_field('coupon_code', "user_$user_id");
+    if (!$coupon_code) return;
+    
+    if (strpos($coupon_code, 'createcoupon') === 0) { // create a new coupon
+        $user_data = get_userdata($user_id);
+        $user_email = $user_data->user_email;
+        $coupon_type = '';
+        $date_created = date('Y-m-d H:i:s');
+
+        $delim = strpos($coupon_code, '|');
+        if ($delim) {
+            $coupon_type = substr($coupon_code, $delim+1);
+        }
+        
+        $new_coupon_code = wcg_generate_coupon_for_user($user_email, $user_id);
+        
+        $row = array(
+            'coupon_code'       => $new_coupon_code,
+            'date_last_updated' => $date_created,
+            'type'              => $coupon_type
+        );
+        
+        add_row('coupons', $row, "user_$user_id");
+    }
+}
