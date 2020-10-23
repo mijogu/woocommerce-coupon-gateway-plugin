@@ -1185,3 +1185,11 @@ function wcg_generate_coupons_after_user_import( $headers, $data, $user_id, $rol
         add_row('coupons', $row, "user_$user_id");
     }
 }
+
+// Autoselect Account Funds 
+function wcg_auto_select_account_funds( $wccm_autocreate_account ) { 
+    if (class_exists('WC_Account_Funds')) {
+        WC()->session->set( 'use-account-funds', true );
+    }
+};          
+add_action( 'woocommerce_before_checkout_form', 'wcg_auto_select_account_funds', 10, 1 );
