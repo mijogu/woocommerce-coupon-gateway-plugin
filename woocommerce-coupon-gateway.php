@@ -465,6 +465,10 @@ function wcg_api_init()
         'coupons',
         'products_viewed',
         'products_selected',
+        'bd_name',
+        'bd_email',
+        'hrd_name',
+        'hrd_email',
     );
 
     // If Account Funds plugin is found, include account_funds in api response
