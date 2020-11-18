@@ -1149,11 +1149,43 @@ function wcg_filter_rest_product_fields( $product, $request )
 }; 
 
 // Add Coupon Type/Category to body classes
-add_filter( 'body_class', 'wcg_add_coupon_type_to_body_class');
-function wcg_add_coupon_type_to_body_class( $classes ) 
+add_filter( 'body_class', 'wcg_add_custom_body_classes');
+function wcg_add_custom_body_classes( $classes ) 
 {
+    global $post;
+    global $current_user;
+
+    // add coupon category class
     $cat = isset($_COOKIE[WCG_REDIRECT_COOKIE]) ? $_COOKIE[WCG_REDIRECT_COOKIE] : 'none';
     $classes[] = "coupon-category-$cat";
+    
+    // add to single product
+    if (class_exists('WC_Account_Funds') && is_product() && $current_user->ID > 0) {
+        $product = wc_get_product($post->ID);
+        $price = $product->get_price();
+        $account_funds = get_user_meta($current_user->ID, 'account_funds', true);
+
+        if ($price > $account_funds) {
+            $classes[] = "insufficient-account-funds";
+        }
+    }
+    
+    return $classes;
+}
+
+add_filter( 'post_class', 'wcg_add_product_loop_classes', 10, 3 ); //woocommerce use priority 20, so if you want to do something after they finish be more lazy
+function wcg_add_product_loop_classes( $classes, $class, $post_id ) { 
+    global $current_user;
+
+    if ( 'product' == get_post_type() ) {
+        $product = wc_get_product($post_id);
+        $price = $product->get_price();
+        $account_funds = get_user_meta($current_user->ID, 'account_funds', true);
+
+        if ($price > $account_funds) {
+            $classes[] = "insufficient-account-funds";
+        }
+    }
     return $classes;
 }
 
