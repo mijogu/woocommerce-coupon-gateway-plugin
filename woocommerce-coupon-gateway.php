@@ -1230,3 +1230,30 @@ function wcg_auto_select_account_funds( $wccm_autocreate_account ) {
     }
 };          
 add_action( 'woocommerce_before_checkout_form', 'wcg_auto_select_account_funds', 10, 1 );
+
+// Define a faux Order meta field for use with Shipstation API
+// (Must return a meta_key, not a value.)
+add_filter( 'woocommerce_shipstation_export_custom_field_2', 'wcg_shipstation_custom_field_2' );
+function wcg_shipstation_custom_field_2() {
+    $value = 'shipstationcustomfield2';
+    return $value;
+}
+
+
+// Hijack the faux Order meta field defined about to return a meta value on the Coupon.
+// If multiple coupons are used on an Order if uses the first one where the 'sales_rep' field 
+// is defined. 
+add_filter( 'get_post_metadata', 'retrieve_user_nickname', 20, 4 );
+function retrieve_user_nickname( $check, $object_id, $meta_key, $single ) {
+  if( 'shipstationcustomfield2' == $meta_key ) {
+    $order = new WC_Order($object_id);
+    $coupons = $order->get_coupon_codes();
+    $sales_rep = '';
+    foreach($coupons as $code) {
+        $coupon = new WC_Coupon($code);
+        $sales_rep = get_field('sales_rep', $coupon->id);
+        if ($sales_rep != '') { return $sales_rep; } 
+    }
+  }
+  return $check;
+}
