@@ -974,7 +974,12 @@ function wcg_get_customer_id_by_coupon_code($coupon_code = null)
     } else {
         return false;
     }
-    $user_id = substr($coupon_code, strrpos($coupon_code, '-') + 1);
+
+    if (strrpos($coupon_code, '-') > 0) {
+        $user_id = substr($coupon_code, strrpos($coupon_code, '-') + 1);
+    } else {
+        $user_id = null;
+    }
     return $user_id;
 }
 
