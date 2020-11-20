@@ -115,18 +115,32 @@ function wcg_process_coupon_code_url()
     $coupon_code = trim($_GET['wcg']);
     if (!$coupon_code) return;
 
+    // get the redirect slug
+    $redirect_slug = '';
+    $coupon = new WC_Coupon($coupon_code);
     $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
-    $coupon_data = wcg_get_coupon_data($coupon_code, null, $user_id);
-    $redirect_to = isset($coupon_data['type']) ? $coupon_data['type'] : '';
-    $expire = time()+86400*30; // set cookie to expire (in a month)
+
+    // if real coupon, try to get redirect slug (generic coupon)
+    if ($coupon->id > 0) {
+        $redirect_slug = get_field('redirect_slug', $coupon->id);
+    }
+
+    // if there still is no redirect_slug set, try to get from a user coupon
+    if ($redirect_slug == '' && $user_id != null) {
+        $coupon_data = wcg_get_coupon_data($coupon_code, null, $user_id);
+        $redirect_slug = $coupon_data['type'];
+    }
+
+    // set cookie to expire (in a month)
+    $expire = time()+86400*30;
 
     // set coupon cookie?
     if (!isset($_COOKIE[$coupon_cookie]) || $_COOKIE[$coupon_cookie] != $coupon_code) {
         setcookie($coupon_cookie, $coupon_code, $expire);
     }
     // set redirect cookie?
-    if (!isset($_COOKIE[$redirect_cookie]) || $_COOKIE[$redirect_cookie] != $redirect_to) {
-        setcookie($redirect_cookie, $redirect_to, $expire);
+    if (!isset($_COOKIE[$redirect_cookie]) || $_COOKIE[$redirect_cookie] != $redirect_slug) {
+        setcookie($redirect_cookie, $redirect_slug, $expire);
     }
     
     // strip out code from URL and redirect
