@@ -310,6 +310,19 @@ function wcg_mark_coupon_used($order_id)
         wcg_send_email_woocommerce_style($to, $subject, $heading, $message);
     }
 
+    // Trigger order Notes
+    $carrier = get_field('carrier', $coupon->id);
+    $carrier_acct = get_field('carrier_acct_num', $coupon->id);
+    $carrier_zip = get_field('carrier_acct_billing_zip', $coupon->id);
+    
+    // only post new note if at least one of the fields has a value
+    if ($carrier || $carrier_acct || $carrier_zip) {
+        $note = $order->get_customer_note('edit');
+        $note .= "\r\n$carrier\r\n$carrier_acct\r\n$carrier_zip";
+        // $order->add_order_note($note); 
+        $order->set_customer_note($note);
+        $order->save();
+    } 
 }
 
 function wcg_was_address_changed($order_address, $user_id)
