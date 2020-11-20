@@ -47,8 +47,6 @@ function wcg_check_query_string_coupon_code()
     $thanks = WCG_THANKYOU_PAGE;
     $welcome = WCG_WELCOME_PAGE;
     
-    $new_type_cookie = null;
-
     if (isset($_REQUEST['wc-ajax'])) {
         // let ajax calls thru
         return;
@@ -76,12 +74,10 @@ function wcg_check_query_string_coupon_code()
         exit;
     }
         
-    // check code is valid 
     // confirm code is valid
     // will redirect to OOPS if not valid
-    // set 2 possible cookies
-    // wcg_check_code_validity($coupon_code, $set_new_cookie); 
-    wcg_check_code_validity($coupon_code); 
+    wcg_check_code_validity($coupon_code);
+
 
     // get user ID from coupon code
     // confirm coupon code / user
@@ -109,6 +105,7 @@ function wcg_check_query_string_coupon_code()
 
 // Process coupon code
 // removes WCG param from URI and redirects
+// Sets cookies for coupon_code and redirect_slug
 function wcg_process_coupon_code_url()
 {
     // set cookies
@@ -211,6 +208,7 @@ function wcg_check_code_validity($coupon_code)
         exit;
     } elseif ($coupon_data['usage_count'] >= $coupon_data['usage_limit']){
         // Code is valid, but has reached usage limit
+        // TODO should allow for coupons with unlimited usage
         $thanks = WCG_THANKYOU_PAGE;
         wp_redirect(site_url($thanks));
         exit;
@@ -225,6 +223,8 @@ function wcg_check_code_validity($coupon_code)
 add_action('woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
 function wcg_mark_coupon_used($order_id)
 {
+    // TODO coupon data switch
+
     $order = new WC_Order($order_id);
     $order_items = $order->get_items();
 
@@ -874,6 +874,7 @@ add_filter('woocommerce_checkout_get_value', 'wcg_populate_checkout_fields', 10,
 // Our hooked in function - $fields is passed via the filter!
 function wcg_populate_checkout_fields($input, $key)
 {
+    // TODO skip over this if coupon is generic
     $user_id = wcg_get_customer_id_by_coupon_code();
     $user_key = 'user_' . $user_id;
     
