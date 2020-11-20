@@ -46,7 +46,7 @@ function wcg_check_query_string_coupon_code()
     $oops = WCG_OOPS_PAGE;
     $thanks = WCG_THANKYOU_PAGE;
     $welcome = WCG_WELCOME_PAGE;
-    
+
     if (isset($_REQUEST['wc-ajax'])) {
         // let ajax calls thru
         return;
@@ -229,6 +229,7 @@ function wcg_mark_coupon_used($order_id)
     $order_items = $order->get_items();
 
     $coupon_code = $_COOKIE[WCG_CODE_COOKIE];
+    $coupon = new WC_Coupon($coupon_code);
     $order->apply_coupon($coupon_code);
 
     $userID = wcg_get_customer_id_by_coupon_code($coupon_code);
@@ -263,14 +264,38 @@ function wcg_mark_coupon_used($order_id)
     // add the purchase information to coupon row
     // there should only be 1 product, but WooCommerece wants us to
     // use the loop regardless. 
+    $product_names = ''; // to be used in notification email
     foreach ($order_items as $item){
-        $row_data['product_id'] = $item->get_product_id();
+        $row_data['product_id'] = $item->get_product_id(); // this is valid
         $row_data['product_name'] = $item->get_name();
         $row_data['order_id'] = $order_id;
         $row_data['address_changed'] = $address_changed;
+
+        $product_names += $product_names == '' ? $item->get_name() : ', '.$item->get_name();
     }
 
     update_row('coupons', $row_number, $row_data, "user_$userID");
+
+    // Trigger email to Notification Email
+    $notif_email = get_field('notification_email', $coupon->id);
+    if ($notif_email) {
+        $message_template = get_field('sales_rep_email_template', 'option');
+        $subject = get_field('sales_rep_email_subject', 'option');
+        $heading = $subject;
+        $customer_first = $order->get_shipping_first_name();
+        $customer_last = $order->get_shipping_last_name();
+        $sales_first = get_field('notification_first_name', $coupon->id);
+        $sales_last = get_field('notification_last_name', $coupon->id);
+        
+        $search = array('{salesrep-firstname}', '{customer-firstname}', '{customer-lastname}', '{product-name}');
+        $replace = array($sales_first, $customer_first, $customer_last, $product_names);
+        $message = str_replace($search, $replace, $message_template);
+
+        $to = "$sales_first $sales_last <".$notif_email.">";
+        // wp_mail($to, $subject, $message);
+        wcg_send_email_woocommerce_style($to, $subject, $heading, $message);
+    }
+
 }
 
 function wcg_was_address_changed($order_address, $user_id)
@@ -1230,6 +1255,31 @@ function wcg_auto_select_account_funds( $wccm_autocreate_account ) {
     }
 };          
 add_action( 'woocommerce_before_checkout_form', 'wcg_auto_select_account_funds', 10, 1 );
+
+
+// @email - Email address of the reciever
+// @subject - Subject of the email
+// @heading - Heading to place inside of the woocommerce template
+// @message - Body content (can be HTML)
+function wcg_send_email_woocommerce_style($email, $subject, $heading, $message) {
+    $headers = array('Content-Type: text/html; charset=UTF-8');
+    
+    // Get woocommerce mailer from instance
+    $mailer = WC()->mailer();
+  
+    // Wrap message using woocommerce html email template
+    $wrapped_message = $mailer->wrap_message($heading, $message);
+  
+    // Create new WC_Email instance
+    $wc_email = new WC_Email;
+  
+    // Style the wrapped message with woocommerce inline styles
+    $html_message = $wc_email->style_inline($wrapped_message);
+  
+    // Send the email using wordpress mail function
+    wp_mail( $email, $subject, $html_message, $headers);
+  }
+
 
 // Define a faux Order meta field for use with Shipstation API
 // (Must return a meta_key, not a value.)
