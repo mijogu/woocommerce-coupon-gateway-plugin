@@ -1109,7 +1109,7 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
 
     // get coupon code for the order
     if ($order) {
-        foreach ($order->get_used_coupons() as $coupon_code) {
+        foreach ($order->get_coupon_codes() as $coupon_code) {
             // get user id from coupon code
             $user_id = wcg_get_customer_id_by_coupon_code($coupon_code);
             if (!$user_id) continue;
