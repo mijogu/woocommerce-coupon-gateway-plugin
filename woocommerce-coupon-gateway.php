@@ -201,6 +201,11 @@ function wcg_is_accessible_page()
     } 
 
     if (!$access) {
+        // add query params to redirect url
+        $url = $_SERVER['REQUEST_URI'];
+        $pos = strpos($url, '?');
+        $params = $pos >= 0 ? substr($url, $pos) : '';
+        $redirect_to .= $params;
         wp_redirect(site_url($redirect_to));
         exit;
     }
