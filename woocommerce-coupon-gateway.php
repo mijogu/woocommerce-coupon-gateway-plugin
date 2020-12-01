@@ -308,52 +308,87 @@ function wcg_mark_coupon_used($order_id)
     // add the purchase information to coupon row
     // there should only be 1 product, but WooCommerece wants us to
     // use the loop regardless. 
-    $product_names = ''; // to be used in notification email
     foreach ($order_items as $item){
         $row_data['product_id'] = $item->get_product_id(); // this is valid
         $row_data['product_name'] = $item->get_name();
         $row_data['order_id'] = $order_id;
         $row_data['address_changed'] = $address_changed;
 
-        $product_names += $product_names == '' ? $item->get_name() : ', '.$item->get_name();
+        // $product_names .= $product_names == '' ? $item->get_name() : ', '.$item->get_name();
     }
 
     update_row('coupons', $row_number, $row_data, "user_$userID");
+}
 
-    // Trigger email to Notification Email
-    $notif_email = get_field('notification_email', $coupon->id);
-    if ($notif_email) {
-        $message_template = get_field('sales_rep_email_template', 'option');
-        $subject = get_field('sales_rep_email_subject', 'option');
-        $heading = $subject;
-        $customer_first = $order->get_shipping_first_name();
-        $customer_last = $order->get_shipping_last_name();
-        $sales_first = get_field('notification_first_name', $coupon->id);
-        $sales_last = get_field('notification_last_name', $coupon->id);
-        
-        $search = array('{salesrep-firstname}', '{customer-firstname}', '{customer-lastname}', '{product-name}');
-        $replace = array($sales_first, $customer_first, $customer_last, $product_names);
-        $message = str_replace($search, $replace, $message_template);
 
-        $to = "$sales_first $sales_last <".$notif_email.">";
-        // wp_mail($to, $subject, $message);
-        wcg_send_email_woocommerce_style($to, $subject, $heading, $message);
+function wcg_send_additional_order_notifications($order_id) {
+    // get coupon
+    $order = new WC_Order($order_id);
+    $status = $order->get_status();
+
+    // only sending these emails for processing and completed emails
+    if ($status != 'processing' && $status != 'completed') return;
+
+    $coupons = $order->get_coupon_codes();
+    $notif_email = '';
+    $coupon_id = '';
+
+    // exit if there are no coupons used
+    if (count($coupons) == 0) return;
+
+    // assume there can be multiple coupons, and look for notif emails
+    foreach($coupons as $coupon) {
+        $coupon_id = wc_get_coupon_id_by_code($coupon);
+        $notif_email = get_field('notification_email', $coupon_id);
+        if ($notif_email != '') break;
     }
 
-    // Trigger order Notes
-    $carrier = get_field('carrier', $coupon->id);
-    $carrier_acct = get_field('carrier_acct_num', $coupon->id);
-    $carrier_zip = get_field('carrier_acct_billing_zip', $coupon->id);
+    // return if no notification email is found for this order
+    if ($notif_email == '') return;
+
+    // get the relevant message & subject templates
+    if ($status == 'processing') {
+        $message_template = get_field('new_order_email_message_template', 'option');
+        $subject_template = get_field('new_order_email_subject_template', 'option');
+    } elseif ($status == 'completed') {
+        $message_template = get_field('order_delivery_email_message_template', 'option');
+        $subject_template = get_field('order_delivery_email_subject_line_template', 'option');
+    }
+
+    // return if there is no email template
+    if (!$message_template) return;
+
+    // get fields
+    $product_names = '';
+    $order_items = $order->get_items();    
+    foreach ($order_items as $item){
+        $product_names .= $product_names == '' ? $item->get_name() : ', '.$item->get_name();
+
+    }
+    $customer_first = $order->get_shipping_first_name();
+    $customer_last = $order->get_shipping_last_name();
+    $sales_first = get_field('notification_first_name', $coupon_id);
+    $sales_last = get_field('notification_last_name', $coupon_id);
+    $carrier = get_field('carrier', $coupon_id);
+    $carrier_acct = get_field('carrier_acct_num', $coupon_id);
+    $carrier_zip = get_field('carrier_acct_billing_zip', $coupon_id);
+
+    $search = array('{salesrep-firstname}', '{salesrep-lastname}', '{customer-firstname}', '{customer-lastname}', '{product-name}', '{order-id}', '{carrier}', '{carrier-account-num}', '{carrier-account-zip}');
+    $replace = array($sales_first, $sales_last, $customer_first, $customer_last, $product_names, $order_id, $carrier, $carrier_acct, $carrier_zip);
     
-    // only post new note if at least one of the fields has a value
-    if ($carrier || $carrier_acct || $carrier_zip) {
-        $note = $order->get_customer_note('edit');
-        $note .= "\r\n$carrier\r\n$carrier_acct\r\n$carrier_zip";
-        // $order->add_order_note($note); 
-        $order->set_customer_note($note);
-        $order->save();
-    } 
+    // parse / replace template variables
+    $message = str_replace($search, $replace, $message_template);
+    $subject = str_replace($search, $replace, $subject_template);
+    $heading = $subject;
+
+    // trigger email
+    $to = "$sales_first $sales_last <".$notif_email.">";
+    wcg_send_email_woocommerce_style($to, $subject, $heading, $message);
 }
+// add_action( 'woocommerce_order_status_processing', 'wcg_send_additional_order_notifications', 20, 1 );
+add_action( 'woocommerce_payment_complete', 'wcg_send_additional_order_notifications', 11, 1 );
+add_action( 'woocommerce_order_status_completed', 'wcg_send_additional_order_notifications', 10, 1 );
+
 
 function wcg_was_address_changed($order_address, $user_id)
 {
