@@ -53,7 +53,7 @@
                 "class": "",
                 "id": ""
             },
-            "message": "In the following \"email message\" and \"email subject line\" templates these variables are available to be placed within the content:\r\n\r\n{salesrep-firstname}\r\n{salesrep-lastname}\r\n{customer-firstname} \r\n{customer-lastname}\r\n{product-name}\r\n{order-id}\r\n{carrier}\r\n{carrier-account-num}\r\n{carrier-account-zip}\r\n\r\nThe \"email message\" templates may also use HTML.",
+            "message": "In the following \"email message\" and \"email subject line\" templates these variables are available to be placed within the content:\r\n\r\n{salesrep-firstname}\r\n{salesrep-lastname}\r\n{customer-firstname} \r\n{customer-lastname}\r\n{product-name}\r\n{order-id}\r\n{carrier}\r\n{carrier-account-num}\r\n{carrier-account-zip}\r\n{shipping-info}\r\n\r\nThe \"email message\" templates may also use HTML.",
             "new_lines": "wpautop",
             "esc_html": 0
         },
@@ -96,9 +96,9 @@
             "maxlength": ""
         },
         {
-            "key": "field_5fc57977a6425",
-            "label": "Order Delivery email message template",
-            "name": "order_delivery_email_message_template",
+            "key": "field_5fc68ebc8af5b",
+            "label": "Order Shipped email message template",
+            "name": "order_shipped_email_message_template",
             "type": "textarea",
             "instructions": "",
             "required": 0,
@@ -115,9 +115,9 @@
             "new_lines": ""
         },
         {
-            "key": "field_5fc5797aa6426",
-            "label": "Order Delivery email subject line template",
-            "name": "order_delivery_email_subject_line_template",
+            "key": "field_5fc68ed38af5c",
+            "label": "Order Shipped email subject line template",
+            "name": "order_shipped_email_subject_line_template",
             "type": "text",
             "instructions": "",
             "required": 0,
@@ -151,5 +151,5 @@
     "hide_on_screen": "",
     "active": true,
     "description": "",
-    "modified": 1606779251
+    "modified": 1606848343
 }
