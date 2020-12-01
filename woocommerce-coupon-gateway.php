@@ -208,7 +208,9 @@ function wcg_is_accessible_page()
             
             // remove the default 'uncategorized' category
             $pos = array_search('uncategorized', $product_cats);
-            if ($pos >= 0) { unset($product_cats[$pos]); }
+            if ($pos !== false) { 
+                unset($product_cats[$pos]); 
+            }
 
             // find any matching categories
             $matching_cats = array_intersect($valid_cats, $product_cats);
