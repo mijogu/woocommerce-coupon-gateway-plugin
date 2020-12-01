@@ -185,11 +185,36 @@ function wcg_is_accessible_page()
     $allowable_pages[] = $redirect_to;
 
     $url_parts = explode('?', $_SERVER['REQUEST_URI'], 2);
+    $post_id = url_to_postid( $url_parts[0] ); // Attempt to get post ID
+    $post = is_int($post_id) ? get_post($post_id) : null;
 
     foreach ($allowable_pages as $page) {
         if ($page == "/") {
             $access = $url_parts[0] == "/" ? true : false;
             // $access = true;
+            break;
+        } elseif('product' == $post->post_type) {
+            // get coupon's category access
+            $coupon = new WC_Coupon($_COOKIE[WCG_CODE_COOKIE]);
+            $valid_cats_string = get_field('valid_categories', $coupon->id);
+            if (!$valid_cats_string) {
+                // if there are no valid categories, any product will do
+                $access = true;
+                break;
+            }
+            $valid_cats = explode('|', $valid_cats_string);
+            $product_cats = wp_get_post_terms($post_id, 'product_cat');
+            $product_cats = wp_list_pluck($product_cats, 'slug');
+            
+            // remove the default 'uncategorized' category
+            $pos = array_search('uncategorized', $product_cats);
+            if ($pos >= 0) { unset($product_cats[$pos]); }
+
+            // find any matching categories
+            $matching_cats = array_intersect($valid_cats, $product_cats);
+
+            // if there are matching categories, the coupon is valid for this product
+            $access = count($matching_cats) > 0 ? true : false;
             break;
         } else {
             $pos = strpos($url_parts[0], $page);
