@@ -352,9 +352,23 @@ function wcg_send_additional_order_notifications($order_id) {
     if ($status == 'processing') {
         $message_template = get_field('new_order_email_message_template', 'option');
         $subject_template = get_field('new_order_email_subject_template', 'option');
+        $shipping_info = '';
     } elseif ($status == 'completed') {
-        $message_template = get_field('order_delivery_email_message_template', 'option');
-        $subject_template = get_field('order_delivery_email_subject_line_template', 'option');
+        $message_template = get_field('order_shipped_email_message_template', 'option');
+        $subject_template = get_field('order_shipped_email_subject_line_template', 'option');
+        $order_notes = wc_get_order_notes(array(
+            'order_id' => $order_id,
+        ));
+        $shipping_info = '';
+        $order_notes = wp_list_pluck($order_notes, 'content');
+        foreach($order_notes as $note) {
+            $pos = strpos($note, 'shipped via');
+            if ($pos !== false) {
+                $shipping_info = $note;
+                break;
+            }
+        }
+
     }
 
     // return if there is no email template
@@ -375,8 +389,30 @@ function wcg_send_additional_order_notifications($order_id) {
     $carrier_acct = get_field('carrier_acct_num', $coupon_id);
     $carrier_zip = get_field('carrier_acct_billing_zip', $coupon_id);
 
-    $search = array('{salesrep-firstname}', '{salesrep-lastname}', '{customer-firstname}', '{customer-lastname}', '{product-name}', '{order-id}', '{carrier}', '{carrier-account-num}', '{carrier-account-zip}');
-    $replace = array($sales_first, $sales_last, $customer_first, $customer_last, $product_names, $order_id, $carrier, $carrier_acct, $carrier_zip);
+    $search = array(
+        '{salesrep-firstname}', 
+        '{salesrep-lastname}', 
+        '{customer-firstname}', 
+        '{customer-lastname}', 
+        '{product-name}', 
+        '{order-id}', 
+        '{carrier}', 
+        '{carrier-account-num}', 
+        '{carrier-account-zip}',
+        '{shipping-info}'
+    );
+    $replace = array(
+        $sales_first, 
+        $sales_last, 
+        $customer_first, 
+        $customer_last, 
+        $product_names, 
+        $order_id, 
+        $carrier, 
+        $carrier_acct, 
+        $carrier_zip,
+        $shipping_info
+    );
     
     // parse / replace template variables
     $message = str_replace($search, $replace, $message_template);
