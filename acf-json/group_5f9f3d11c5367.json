@@ -1,6 +1,6 @@
 {
     "key": "group_5f9f3d11c5367",
-    "title": "Coupon",
+    "title": "Coupon Custom Fields",
     "fields": [
         {
             "key": "field_5f9f3d87e6022",
@@ -172,6 +172,25 @@
             "prepend": "",
             "append": "",
             "maxlength": ""
+        },
+        {
+            "key": "field_5fc54c974e413",
+            "label": "Product categories",
+            "name": "valid_categories",
+            "type": "text",
+            "instructions": "Enter the list of Product Category slugs that this Coupon is valid for, separated with |s.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
         }
     ],
     "location": [
@@ -191,5 +210,5 @@
     "hide_on_screen": "",
     "active": true,
     "description": "",
-    "modified": 1605732275
+    "modified": 1606765859
 }

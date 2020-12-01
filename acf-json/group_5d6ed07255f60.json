@@ -41,11 +41,28 @@
             "maxlength": ""
         },
         {
-            "key": "field_5fb6e6cf89d03",
-            "label": "Sales rep email template",
-            "name": "sales_rep_email_template",
+            "key": "field_5fc58034e1926",
+            "label": "Email Message \/ Subject templates",
+            "name": "",
+            "type": "message",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "In the following \"email message\" and \"email subject line\" templates these variables are available to be placed within the content:\r\n\r\n{salesrep-firstname}\r\n{salesrep-lastname}\r\n{customer-firstname} \r\n{customer-lastname}\r\n{product-name}\r\n{order-id}\r\n{carrier}\r\n{carrier-account-num}\r\n{carrier-account-zip}\r\n\r\nThe \"email message\" templates may also use HTML.",
+            "new_lines": "wpautop",
+            "esc_html": 0
+        },
+        {
+            "key": "field_5fc578b4a6423",
+            "label": "New Order email message template",
+            "name": "new_order_email_message_template",
             "type": "textarea",
-            "instructions": "HTML can be used, and these variables are available and can be placed within the email content:\r\n{salesrep-firstname}\r\n{customer-firstname} \r\n{customer-lastname}\r\n{product-name}",
+            "instructions": "",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -60,9 +77,47 @@
             "new_lines": ""
         },
         {
-            "key": "field_5fb6e6ef89d04",
-            "label": "Sales rep email subject",
-            "name": "sales_rep_email_subject",
+            "key": "field_5fc5794ea6424",
+            "label": "New Order email subject line template",
+            "name": "new_order_email_subject_template",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5fc57977a6425",
+            "label": "Order Delivery email message template",
+            "name": "order_delivery_email_message_template",
+            "type": "textarea",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "maxlength": "",
+            "rows": "",
+            "new_lines": ""
+        },
+        {
+            "key": "field_5fc5797aa6426",
+            "label": "Order Delivery email subject line template",
+            "name": "order_delivery_email_subject_line_template",
             "type": "text",
             "instructions": "",
             "required": 0,
@@ -96,5 +151,5 @@
     "hide_on_screen": "",
     "active": true,
     "description": "",
-    "modified": 1605892861
+    "modified": 1606779251
 }
