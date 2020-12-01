@@ -1041,9 +1041,11 @@ add_filter('rest_user_query', 'wcg_change_user_query', 2, 10);
 
 function wcg_change_user_query($prepared_args, $request)
 {
-    // increase the total results returned
-    $max = max(WCG_USERS_PER_PAGE, (int) $request->get_param('custom_per_page'));
-    $prepared_args['number'] = $max;
+    // check for our custom per page variable
+    $custom_num = $request->get_param('custom_per_page'); 
+    if ($custom_num !== null) {
+        $prepared_args['number'] = $custom_num;
+    }
 
     // exclude admins from being returned
     $prepared_args['role'] = 'Subscriber';
