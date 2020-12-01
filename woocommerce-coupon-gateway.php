@@ -1324,7 +1324,7 @@ add_action( 'woocommerce_before_checkout_form', 'wcg_auto_select_account_funds',
 // @heading - Heading to place inside of the woocommerce template
 // @message - Body content (can be HTML)
 function wcg_send_email_woocommerce_style($email, $subject, $heading, $message) {
-    $headers = array('Content-Type: text/html; charset=UTF-8');
+    // uses the default WC headers
     
     // Get woocommerce mailer from instance
     $mailer = WC()->mailer();
@@ -1334,6 +1334,7 @@ function wcg_send_email_woocommerce_style($email, $subject, $heading, $message) 
   
     // Create new WC_Email instance
     $wc_email = new WC_Email;
+    $headers = $wc_email->get_headers();
   
     // Style the wrapped message with woocommerce inline styles
     $html_message = $wc_email->style_inline($wrapped_message);
