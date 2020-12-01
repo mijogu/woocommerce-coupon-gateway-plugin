@@ -60,8 +60,9 @@ content-type: application/json
 ##########################################
     # This will return all WP Users.
     # By default, this endpoint will only return max 100 users. 
-    # This was changed to 1000, but can be overridden with the 
-    # 'custom_per_page' parameter. 
+    # To override that, use the 'custom_per_page' field. 
+    # For paginated results, use 'per_page' & 'page' fields. 
+    # You cannot use both `custom_per_page` and `per_page` together. 
 
     # Sample endpoint: GET http://gatedsite1.visagedevsite.info/wp-json/wp/v2/users
 
@@ -70,7 +71,9 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "custom_per_page": "10"
+    //"custom_per_page": "1000"
+    "per_page": "1",
+    "page": "1"
 }
 
 
