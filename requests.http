@@ -6,16 +6,10 @@
     # VS Code "Rest Client extension" which can be found here:
     # https://github.com/Huachao/vscode-restclient
 
-#@host = http://gated-woocommerce.local
-# @host = https://carvana-ontheroad.local
-@host = https://dev.carvanaowntheroad.com/
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvZGV2LmNhcnZhbmFvd250aGVyb2FkLmNvbSIsImlhdCI6MTYwMTkxNTI1NiwibmJmIjoxNjAxOTE1MjU2LCJleHAiOjE2MDI1MjAwNTYsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.lFdfKVIDca-cYE-JL3fWZtFKZGcgNlu-AsvIMmJ5UgM
 
-# @host = http://gatedsite1.visagedevsite.info
-# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9nYXRlZHNpdGUxLnZpc2FnZWRldnNpdGUuaW5mbyIsImlhdCI6MTU3MDcyODg2NCwibmJmIjoxNTcwNzI4ODY0LCJleHAiOjE1NzEzMzM2NjQsImRhdGEiOnsidXNlciI6eyJpZCI6IjMzNDEifX19.l-BtIqAmI6sNuCILhfy6YPPzVx9mMX8UG2cS8qdTYIg
+@host = https://atlas.local/
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXRsYXMubG9jYWwiLCJpYXQiOjE2MDY3NzIwOTQsIm5iZiI6MTYwNjc3MjA5NCwiZXhwIjoxNjA3Mzc2ODk0LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIzMzQxIn19fQ.09ygjqaPRgA3Skiw9emfXCKrpfS_V1pkThMDQb4S3V8
 
-# @host = http://bncarvanadev.wpengine.com
-# @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9ibmNhcnZhbmFkZXYud3BlbmdpbmUuY29tIiwiaWF0IjoxNTcxNjc5NTEyLCJuYmYiOjE1NzE2Nzk1MTIsImV4cCI6MTU3MjI4NDMxMiwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMzM0MSJ9fX0.SbH8RBT0Yv82tl9U0vfXke37Cy70JROiYULpSCfYwNw
 
 @username = mikegunn
 @email = mike2@darngood.io
