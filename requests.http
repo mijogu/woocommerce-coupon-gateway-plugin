@@ -178,8 +178,13 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
+    "account_funds" : 700
     //"custom_uid" : "mikecustomid"
-    "carvana_uid" : "carvana"
+    //"carvana_uid" : "carvana",
+    //"bd_name" : "mike gunn",
+    //"bd_email" : "email@example.com",
+    //"hrd_name" : "dr mike gunn",
+    //"hrd_email" : "hremail@example.com"
     //"first_name" :  "{{first_name}}",
     //"last_name" :   "{{last_name}}",
     //"address_1" :   "{{address_1}}",
@@ -192,8 +197,6 @@ Authorization: Bearer {{token}}
         //"coupon_status": "cancelled",
         //"vehicle_id": "111111111",
         //"is_confirmed": false,
-        //"coupon_code": "ee656f0eab2431df70be67e490063a74-1574278251-3349"
-        "coupon_code": "createcoupon"
         //"coupon_code": "createcoupon"
     //}
 }
