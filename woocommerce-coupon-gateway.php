@@ -320,6 +320,19 @@ function wcg_mark_coupon_used($order_id)
     }
 
     update_row('coupons', $row_number, $row_data, "user_$userID");
+
+    // Add carrier data to customer's order note
+    $carrier = get_field('carrier', $coupon->id);
+    $carrier_acct = get_field('carrier_acct_num', $coupon->id);
+    $carrier_zip = get_field('carrier_acct_billing_zip', $coupon->id);
+    
+    // only post new note if at least one of the fields has a value
+    if ($carrier || $carrier_acct || $carrier_zip) {
+        $note = $order->get_customer_note('edit');
+        $note .= "\r\n$carrier\r\n$carrier_acct\r\n$carrier_zip";
+        $order->set_customer_note($note);
+        $order->save();
+    }
 }
 
 
