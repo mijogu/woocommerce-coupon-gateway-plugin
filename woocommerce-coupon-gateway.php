@@ -1440,12 +1440,20 @@ function wcg_shipstation_custom_field_2() {
     return $value;
 }
 
+// Define a faux Order meta field for use with Shipstation API
+// (Must return a meta_key, not a value.)
+add_filter( 'woocommerce_shipstation_export_custom_field_3', 'wcg_shipstation_custom_field_3' );
+function wcg_shipstation_custom_field_3() {
+    $value = 'shipstationcustomfield3';
+    return $value;
+}
+
 
 // Hijack the faux Order meta field defined about to return a meta value on the Coupon.
 // If multiple coupons are used on an Order if uses the first one where the 'sales_rep' field 
 // is defined. 
-add_filter( 'get_post_metadata', 'retrieve_user_nickname', 20, 4 );
-function retrieve_user_nickname( $check, $object_id, $meta_key, $single ) {
+add_filter( 'get_post_metadata', 'wcg_handle_shipstation_custom_fields', 20, 4 );
+function wcg_handle_shipstation_custom_fields( $check, $object_id, $meta_key, $single ) {
   if( 'shipstationcustomfield2' == $meta_key ) {
     $order = new WC_Order($object_id);
     $coupons = $order->get_coupon_codes();
@@ -1454,6 +1462,19 @@ function retrieve_user_nickname( $check, $object_id, $meta_key, $single ) {
         $coupon = new WC_Coupon($code);
         $sales_rep = get_field('sales_rep', $coupon->id);
         if ($sales_rep != '') { return $sales_rep; } 
+    }
+  } elseif( 'shipstationcustomfield3' == $meta_key ) {
+    $order = new WC_Order($object_id);
+    $coupons = $order->get_coupon_codes();
+    $sales_rep = '';
+    foreach($coupons as $code) {
+        $coupon = new WC_Coupon($code);
+        $carrier = get_field('carrier', $coupon->id);
+        $carrier_num = get_field('carrier_acct_num', $coupon->id);
+        $carrier_zip = get_field('carrier_acct_billing_zip', $coupon->id);
+        if ($carrier || $carrier_num || $carrier_zip) { 
+            return $carrier . '|' . $carrier_num . '|' . $carrier_zip; 
+        } 
     }
   }
   return $check;
