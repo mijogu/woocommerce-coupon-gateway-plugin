@@ -1157,6 +1157,18 @@ function wcg_modify_rest_user_response($response, $user, $request)
     unset($response->data['capabilities']);
     unset($response->data['extra_capabilities']);
     unset($response->data['woocommerce_meta']);
+    unset($response->data['username']);
+
+    if (!isset($response->data['email'])) {
+        $response->data['email'] = $user->user_email;
+    }
+    if (!isset($response->data['first_name'])) {
+        $response->data['first_name']  = get_user_meta( $user->ID, 'first_name', true );
+    }
+    if (!isset($response->data['last_name'])) {
+        $response->data['last_name']  = get_user_meta( $user->ID, 'last_name', true );
+    }
+
     return $response;
 }
 
