@@ -2,8 +2,9 @@
 
 /**
  * Plugin Name: WooCommerce Coupon Gateway
+ * Plugin URI: https://github.com/mijogu/woocommerce-coupon-gateway
  * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
- * Version: 1.23.3
+ * Version: 0.1
  * Author: DarnGood LLC
  * Text Domain: woocommerce-coupon-gateway
  * License: GPLv2
@@ -17,6 +18,35 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 defined('ABSPATH') or die('No script kiddies please!');
+
+add_action( 'init', 'wcg_github_plugin_updater_init' );
+function wcg_github_plugin_updater_init() {
+
+	include_once 'updater.php';
+
+	define( 'WP_GITHUB_FORCE_UPDATE', true );
+
+	if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
+
+		$config = array(
+			'slug' => plugin_basename( __FILE__ ),
+			'proper_folder_name' => 'woocommerce-coupon-gateway',
+			'api_url' => 'https://api.github.com/repos/mijogu/woocommerce-coupon-gateway',
+			'raw_url' => 'https://raw.github.com/mijogu/woocommerce-coupon-gateway/master',
+			'github_url' => 'https://github.com/mijogu/woocommerce-coupon-gateway',
+			'zip_url' => 'https://github.com/mijogu/woocommerce-coupon-gateway/archive/master.zip',
+			'sslverify' => true,
+			'requires' => '3.0',
+			'tested' => '3.3',
+			'readme' => 'README.md',
+			'access_token' => 'e92d84e9efb64e93c013e183247fcce42d5e5c5c',
+		);
+
+		new WP_GitHub_Updater( $config );
+
+	}
+
+}
 
 // Define $_COOKIE-related constants
 defined('WCG_CODE_COOKIE')      or define('WCG_CODE_COOKIE', 'wcg_code');
