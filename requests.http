@@ -8,7 +8,7 @@
 
 
 @host = https://atlas.local/
-@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXRsYXMubG9jYWwiLCJpYXQiOjE2MDY3NzIwOTQsIm5iZiI6MTYwNjc3MjA5NCwiZXhwIjoxNjA3Mzc2ODk0LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIzMzQxIn19fQ.09ygjqaPRgA3Skiw9emfXCKrpfS_V1pkThMDQb4S3V8
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXRsYXMubG9jYWwiLCJpYXQiOjE2MDc3MDQ5MzIsIm5iZiI6MTYwNzcwNDkzMiwiZXhwIjoxNjA4MzA5NzMyLCJkYXRhIjp7InVzZXIiOnsiaWQiOiIzMzQxIn19fQ.roVRodD_RE_gGoXbQrj7FyeuqiOjnq_iYFGeSbVfulg
 
 
 @username = mikegunn
@@ -65,8 +65,8 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    //"custom_per_page": "1000"
-    "per_page": "1",
+    //"custom_per_page": "1000",
+    "per_page": "10",
     "page": "1"
 }
 
@@ -119,8 +119,10 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "username":     "{{email}}",
-    "email":        "{{email}}",
+    //"username":     "{{email}}",
+    "username":     "signup@darngood.io",
+    "email":     "signup@darngood.io",
+    //"email":        "{{email}}",
     "password":     "{{password}}",
     "first_name" :  "{{first_name}}",
     "last_name" :   "{{last_name}}",
@@ -172,7 +174,7 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "account_funds" : 700
+    "account_funds" : 500
     //"custom_uid" : "mikecustomid"
     //"carvana_uid" : "carvana",
     //"bd_name" : "mike gunn",
