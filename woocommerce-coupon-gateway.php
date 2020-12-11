@@ -1300,12 +1300,6 @@ function wcg_dequeue_woocommerce_cart_fragments() {
 } 
 
 
-// add_filter( 'rest_pre_dispatch', 'wcg_filter_api_requests', 0, 3 );
-// add_filter('rest_dispatch_request', 'wcg_filter_api_requests', 0, 3 );
-// add_filter( 'rest_request_before_callbacks', 'wcg_filter_api_requests', 0, 3 );
-
-
-
 /**
  * Filter the standard update endpoint for products.
  * so that only specific fields can be updated. 
