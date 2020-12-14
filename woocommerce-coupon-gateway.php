@@ -591,15 +591,35 @@ add_shortcode('wcg_cookie', 'wcg_cookie');
 
 
 // Shortcode that displays user data
-function wcg_user_data($atts)
+// 'format' parameter defaults to 'string, but also accepts 'currency' or 'number' 
+function wcg_user_data($atts = [], $content = null, $tag = '')
 {
+    global $current_user;
+    $user_id = '';
+
+    $atts = array_change_key_case( (array) $atts, CASE_LOWER );
+
     extract(shortcode_atts(array(
-        'name' => 'name',
-  ), $atts));
+        'name' => '',
+        'format' => 'string',
+    ), $atts));
 
-    $user_id = wcg_get_customer_id_by_coupon_code();
+    // if no field was specificaly, return
+    if ($name == '') return;
+
+    // try to get logged in user
+    if ($current_user->ID !== 0) { $user_id = $current_user->ID; } 
+    // try to get user by coupon code
+    else { $user_id = wcg_get_customer_id_by_coupon_code(); }
+
     $user_meta = get_user_meta($user_id, $name, true);
+    // $has_decimal = strpos($user_meta, '.') >= 0; 
 
+    if ('number' == $format) {
+        $user_meta = number_format($user_meta, 0);
+    } elseif ('currency' == $format) {
+        $user_meta = "$" . number_format($user_meta, 0);
+    }
     return $user_meta;
 
 }
