@@ -31,6 +31,8 @@ defined('WCG_WELCOME_PAGE')     or define('WCG_WELCOME_PAGE', 'welcome');
 defined('WCG_OOPS_PAGE')        or define('WCG_OOPS_PAGE', 'oops');
 defined('WCG_THANKYOU_PAGE')    or define('WCG_THANKYOU_PAGE', 'congrats');
 defined('WCG_CHECKOUT_PAGE')    or define('WCG_CHECKOUT_PAGE', 'delivery-information');
+defined('WCG_CART_PAGE')    or define('WCG_CART_PAGE', 'cart');
+
 
 defined('WCG_CLIENT_BRANDING')  or define('WCG_CLIENT_BRANDING', false);
 defined('WCG_CART_LIMIT')       or define('WCG_CART_LIMIT', 1);
@@ -175,6 +177,7 @@ function wcg_is_accessible_page()
     $allowable_pages[] = WCG_THANKYOU_PAGE;
     $allowable_pages[] = WCG_CHECKOUT_PAGE;
     $allowable_pages[] = 'product';
+    $allowable_pages[] = WCG_CART_PAGE;	
 
     // TO DO need to check Products for type/category
 
