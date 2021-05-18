@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce Coupon Gateway
  * Description: This plugin is designed to prevent users from accessing a WooCommerce-anabled WordPress website unless they are admins or they have a valid Coupon code.
- * Version: 1.24
+ * Version: 1.25
  * Author: DarnGood LLC
  * Text Domain: woocommerce-coupon-gateway
  * License: GPLv2
@@ -12,7 +12,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-//   PHASE 1 : COUPON CODE / COOKIES 
+//   PHASE 1 : COUPON CODE / COOKIES
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -36,11 +36,11 @@ defined('WCG_CLIENT_BRANDING')  or define('WCG_CLIENT_BRANDING', false);
 defined('WCG_CART_LIMIT')       or define('WCG_CART_LIMIT', 1);
 
 // Changing this from 'parse_request' to 'parse_query' seems to yield
-// unwanted results. COOKIES don't work on first page visit. 
+// unwanted results. COOKIES don't work on first page visit.
 add_action('parse_request', 'wcg_check_query_string_coupon_code', 10);
 
 function wcg_check_query_string_coupon_code()
-{    
+{
     global $current_user;
     $coupon_cookie = WCG_CODE_COOKIE;
     $oops = WCG_OOPS_PAGE;
@@ -55,9 +55,9 @@ function wcg_check_query_string_coupon_code()
         return;
     } elseif (
         // let specific pages thru
-        strpos($_SERVER['REQUEST_URI'], $oops) == 1 || 
+        strpos($_SERVER['REQUEST_URI'], $oops) == 1 ||
         strpos($_SERVER['REQUEST_URI'], $thanks) == 1 ||
-        strpos($_SERVER['REQUEST_URI'], $welcome) == 1 
+        strpos($_SERVER['REQUEST_URI'], $welcome) == 1
         ) {
         return;
     } elseif (isset($_GET['wcg']) && trim($_GET['wcg']) != '') {
@@ -67,13 +67,13 @@ function wcg_check_query_string_coupon_code()
 
     // if we made it this far, we can rely on cookie being set
     $coupon_code = isset($_COOKIE[$coupon_cookie]) ? $_COOKIE[$coupon_cookie] : null;
-        
+
     // redirect to Oops page if no code found (and no user logged in)
     if (is_null($coupon_code)) {
         wp_redirect($oops);
         exit;
     }
-        
+
     // confirm code is valid
     // will redirect to OOPS if not valid
     wcg_check_code_validity($coupon_code);
@@ -90,8 +90,8 @@ function wcg_check_query_string_coupon_code()
         wp_clear_auth_cookie();
         wp_set_current_user( 0 );
     }
-        
-    // if the logged in user isn't the user 
+
+    // if the logged in user isn't the user
     if ($current_user->ID == 0) {
         // login as this user
         wp_set_current_user( $user_id, $user->user_login );
@@ -163,7 +163,8 @@ function wcg_process_coupon_code_url()
     if (!isset($_COOKIE[$redirect_cookie]) || $_COOKIE[$redirect_cookie] != $redirect_slug) {
         setcookie($redirect_cookie, $redirect_slug, $expire);
     }
-    
+
+
     // strip out code from URL and redirect
     $url = $_SERVER['REQUEST_URI'];
     $parsed_url = parse_url($url);
@@ -176,7 +177,7 @@ function wcg_process_coupon_code_url()
     exit;
 }
 
-function is_login_page() 
+function is_login_page()
 {
     // This is deprecated according to:
     // https://wordpress.stackexchange.com/questions/12863/check-if-wp-login-is-current-page
@@ -188,7 +189,7 @@ function is_login_page()
 // Return true if page is allowed
 // Redirect if page is not allowed
 // Using the $new_type_cookie param is necessary on the initial page visit
-function wcg_is_accessible_page() 
+function wcg_is_accessible_page()
 {
     $allowable_pages = array();
 
@@ -202,7 +203,7 @@ function wcg_is_accessible_page()
     $redirect_cookie = WCG_REDIRECT_COOKIE;
     $redirect_to = isset($_COOKIE[$redirect_cookie]) ? $_COOKIE[$redirect_cookie] : '/';
     $access = false;
-    
+
     $allowable_pages[] = $redirect_to;
 
     $url_parts = explode('?', $_SERVER['REQUEST_URI'], 2);
@@ -226,11 +227,11 @@ function wcg_is_accessible_page()
             $valid_cats = explode('|', $valid_cats_string);
             $product_cats = wp_get_post_terms($post_id, 'product_cat');
             $product_cats = wp_list_pluck($product_cats, 'slug');
-            
+
             // remove the default 'uncategorized' category
             $pos = array_search('uncategorized', $product_cats);
-            if ($pos !== false) { 
-                unset($product_cats[$pos]); 
+            if ($pos !== false) {
+                unset($product_cats[$pos]);
             }
 
             // find any matching categories
@@ -246,7 +247,7 @@ function wcg_is_accessible_page()
                 break;
             }
         }
-    } 
+    }
 
     if (!$access) {
         // if redirecting, add query params to redirect url
@@ -284,7 +285,7 @@ function wcg_check_code_validity($coupon_code)
 
 
 // After a successful transaction, apply the coupon code
-// that was saved as a cookie to the Order. 
+// that was saved as a cookie to the Order.
 //
 // And update the coupon_status for the user to 'giftSelected' or 'giftConfirmed'
 add_action('woocommerce_payment_complete', 'wcg_mark_coupon_used', 10, 1);
@@ -307,7 +308,7 @@ function wcg_mark_coupon_used($order_id)
     }
 
     $coupon_status = 'giftSelected';
-    
+
     if ($coupon_data['is_confirmed'] == true) {
         $coupon_status = 'giftConfirmed';
         wcg_trigger_confirmed_email($order_id);
@@ -330,7 +331,7 @@ function wcg_mark_coupon_used($order_id)
 
     // add the purchase information to coupon row
     // there should only be 1 product, but WooCommerece wants us to
-    // use the loop regardless. 
+    // use the loop regardless.
     foreach ($order_items as $item){
         $row_data['product_id'] = $item->get_product_id(); // this is valid
         $row_data['product_name'] = $item->get_name();
@@ -346,8 +347,8 @@ function wcg_mark_coupon_used($order_id)
     $carrier = get_field('carrier', $coupon->id);
     $carrier_acct = get_field('carrier_acct_num', $coupon->id);
     $carrier_zip = get_field('carrier_acct_billing_zip', $coupon->id);
-    $addl_email = get_field('notification_email', $coupon->id);		
-    
+    $addl_email = get_field('notification_email', $coupon->id);
+
     // only post new note if at least one of the fields has a value
     if ($carrier || $carrier_acct || $carrier_zip) {
         $note = $order->get_customer_note('edit');
@@ -411,7 +412,7 @@ function wcg_send_additional_order_notifications($order_id) {
 
     // get fields
     $product_names = '';
-    $order_items = $order->get_items();    
+    $order_items = $order->get_items();
     foreach ($order_items as $item){
         $product_names .= $product_names == '' ? $item->get_name() : ', '.$item->get_name();
 
@@ -425,30 +426,30 @@ function wcg_send_additional_order_notifications($order_id) {
     $carrier_zip = get_field('carrier_acct_billing_zip', $coupon_id);
 
     $search = array(
-        '{salesrep-firstname}', 
-        '{salesrep-lastname}', 
-        '{customer-firstname}', 
-        '{customer-lastname}', 
-        '{product-name}', 
-        '{order-id}', 
-        '{carrier}', 
-        '{carrier-account-num}', 
+        '{salesrep-firstname}',
+        '{salesrep-lastname}',
+        '{customer-firstname}',
+        '{customer-lastname}',
+        '{product-name}',
+        '{order-id}',
+        '{carrier}',
+        '{carrier-account-num}',
         '{carrier-account-zip}',
         '{shipping-info}'
     );
     $replace = array(
-        $sales_first, 
-        $sales_last, 
-        $customer_first, 
-        $customer_last, 
-        $product_names, 
-        $order_id, 
-        $carrier, 
-        $carrier_acct, 
+        $sales_first,
+        $sales_last,
+        $customer_first,
+        $customer_last,
+        $product_names,
+        $order_id,
+        $carrier,
+        $carrier_acct,
         $carrier_zip,
         $shipping_info
     );
-    
+
     // parse / replace template variables
     $message = str_replace($search, $replace, $message_template);
     $subject = str_replace($search, $replace, $subject_template);
@@ -468,7 +469,7 @@ function wcg_was_address_changed($order_address, $user_id)
     if (
         $order_address['address_1'] != get_field('address_1', "user_$user_id")
         || $order_address['address_2'] != get_field('address_2', "user_$user_id")
-        || $order_address['city'] != get_field('city', "user_$user_id") 
+        || $order_address['city'] != get_field('city', "user_$user_id")
         || $order_address['state'] != get_field('state', "user_$user_id")
         || $order_address['postcode'] != get_field('zip', "user_$user_id")
   ){
@@ -480,10 +481,10 @@ function wcg_was_address_changed($order_address, $user_id)
 
 // Get the row number of the active coupon for the user
 // By default, will search by coupon_code
-// else it will search by vehicle_id. 
+// else it will search by vehicle_id.
 // Returns all current data for coupon, including the row_number.
 function wcg_get_coupon_data($coupon_code = null, $vehicle_id = null, $user_id = null)
-{    
+{
     $field_name = null;
     $field_value = null;
     $is_confirmed = null;
@@ -503,7 +504,7 @@ function wcg_get_coupon_data($coupon_code = null, $vehicle_id = null, $user_id =
         return new WP_ERROR('missing_coupon_identifier', 'You did not specify the coupon that needs updating. Please provide either the coupon_code or vehicle_id.');
         //throw new \Exception('You did not specify the coupon that needs updating. Please provide either the coupon_code or vehicle_id.');
     }
-    
+
     $row_number = 0;
     if (have_rows('coupons', "user_$user_id")) {
         while(have_rows('coupons', "user_$user_id")) {
@@ -520,9 +521,9 @@ function wcg_get_coupon_data($coupon_code = null, $vehicle_id = null, $user_id =
                 $date_checkout = get_sub_field('date_checkout');
                 $type = get_sub_field('type');
                 break;
-            } 
+            }
         }
-    }    
+    }
 
     // throw error if there's no row to change
     if ($row_number == 0) {
@@ -536,7 +537,7 @@ function wcg_get_coupon_data($coupon_code = null, $vehicle_id = null, $user_id =
         'coupon_code' => $coupon_code,
         'coupon_status' => $coupon_status,
         'vehicle_id' => $vehicle_id,
-        'order_id' => $order_id, 
+        'order_id' => $order_id,
         'is_confirmed' => $is_confirmed,
         'date_checkout' => $date_checkout,
         'type' => $type
@@ -551,9 +552,9 @@ function wcg_gift_review()
     $items = $woocommerce->cart->get_cart();
     $int = 0;
 
-    foreach($items as $item => $values) { 
+    foreach($items as $item => $values) {
         if ($int > 0) break; // Should only be 1 item in cart, but just sanity checking that we're only showing 1.
-        
+
         $product =  wc_get_product($values['data']->get_id());
         $product_detail = wc_get_product($values['product_id']);
 
@@ -563,7 +564,7 @@ function wcg_gift_review()
             . '<div class="gift_prod_title">' . $product->get_title() . '</div>'
             . '<a href="/">Select a different gift</a>'
             . '</div>';
-    } 
+    }
 }
 
 
@@ -606,13 +607,13 @@ function wcg_cookie($atts)
     extract(shortcode_atts(array(
         'cookie' => 'cookie',
   ), $atts));
-    return $_COOKIE[$cookie];  
+    return $_COOKIE[$cookie];
 }
-add_shortcode('wcg_cookie', 'wcg_cookie'); 
+add_shortcode('wcg_cookie', 'wcg_cookie');
 
 
 // Shortcode that displays user data
-// 'format' parameter defaults to 'string, but also accepts 'currency' or 'number' 
+// 'format' parameter defaults to 'string, but also accepts 'currency' or 'number'
 function wcg_user_data($atts = [], $content = null, $tag = '')
 {
     global $current_user;
@@ -629,12 +630,12 @@ function wcg_user_data($atts = [], $content = null, $tag = '')
     if ($name == '') return;
 
     // try to get logged in user
-    if ($current_user->ID !== 0) { $user_id = $current_user->ID; } 
+    if ($current_user->ID !== 0) { $user_id = $current_user->ID; }
     // try to get user by coupon code
     else { $user_id = wcg_get_customer_id_by_coupon_code(); }
 
     $user_meta = get_user_meta($user_id, $name, true);
-    // $has_decimal = strpos($user_meta, '.') >= 0; 
+    // $has_decimal = strpos($user_meta, '.') >= 0;
 
     if ('number' == $format) {
         $user_meta = number_format($user_meta, 0);
@@ -651,7 +652,7 @@ add_shortcode('wcg_user_data', 'wcg_user_data');
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-//                        PHASE 2 : API ADDITIONS 
+//                        PHASE 2 : API ADDITIONS
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -688,7 +689,7 @@ function wcg_api_init()
 
     // 'carvana_uid' was changed to 'custom_uid'.
     // this provides backwards compatibility for original Carvana site.
-    // shouldn't need to change the ACF field. 
+    // shouldn't need to change the ACF field.
     if (WCG_CLIENT_BRANDING === 'carvana') {
         array_unshift($custom_user_fields,"carvana_uid");
     } else {
@@ -718,7 +719,7 @@ function wcg_api_init()
                         'update_callback'   => 'wcg_update_user_coupons_cb'
                   )
               );
-            break;           
+            break;
             case 'products_selected':
                 // Field does not support UPDATE, only GET
                 register_rest_field(
@@ -730,10 +731,10 @@ function wcg_api_init()
                   )
               );
                 break;
-            default: 
+            default:
                 register_rest_field(
-                    'user', 
-                    $user_field, 
+                    'user',
+                    $user_field,
                     array(
                         'get_callback'      => 'wcg_get_usermeta_cb',
                         'update_callback'   => 'wcg_update_usermeta_cb'
@@ -744,8 +745,8 @@ function wcg_api_init()
     }
 }
 
-// This is outdated. 
-// The original intent was to disallow new coupon codes if user already had one active. 
+// This is outdated.
+// The original intent was to disallow new coupon codes if user already had one active.
 function wcg_check_able_to_assign_coupon($userID)
 {
     $user = 'user_' . $userID;
@@ -772,16 +773,16 @@ add_filter('acf/update_value/name=coupon_code', 'wcg_update_coupon_code', 10, 3)
 function wcg_generate_coupon_for_user($email, $user_id)
 {
     // Generate coupon code from hashed email address
-    // This should guarantee uniqueness, since there 
-    // won't be duplicate email addresses for users. 
+    // This should guarantee uniqueness, since there
+    // won't be duplicate email addresses for users.
     $coupon_code = hash('md5', $email, false). "-" . time(). "-$user_id";
-    
+
     // Create coupon and get ID
     $coupon = array(
         'post_title'    => $coupon_code,
         'post_content'  => '',
         'post_status'   => 'publish',
-        'post_author'   => 1, 
+        'post_author'   => 1,
         'post_type'     => 'shop_coupon'
   );
     $new_coupon_id = wp_insert_post($coupon);
@@ -843,7 +844,7 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
     $coupons = array();
     $coupon = array();
 
-    // This below fixes an ACF "bug" where 'have_rows' returned false 
+    // This below fixes an ACF "bug" where 'have_rows' returned false
     // in responses to Updates API calls where the 'coupons' repeater field
     // was being updated.
     if(have_rows('field_5dc31a02b5f81', $userID)) {
@@ -886,15 +887,15 @@ function wcg_get_user_coupons_cb($user, $field_name, $request)
             }
 
             $coupons[] = $coupon;
-        } 
+        }
     }
     return $coupons;
 }
 
 // Return array of all product attributes
-function wcg_get_product_attributes($product) 
+function wcg_get_product_attributes($product)
 {
-    if ($product == null) return ''; 
+    if ($product == null) return '';
 
     $attributes = $product->get_attributes();
     $attr_list = array();
@@ -911,9 +912,9 @@ function wcg_get_product_attributes($product)
 }
 
 // Return array of all product categories
-function wcg_get_product_categories($product) 
+function wcg_get_product_categories($product)
 {
-    if ($product == null) return ''; 
+    if ($product == null) return '';
 
     $cat_list = '';
     foreach (wp_get_post_terms($product->get_id(), 'product_cat') as $category) {
@@ -949,17 +950,17 @@ function wcg_get_order_status($order_id)
 // Create Coupon or Update Coupon
 function wcg_update_user_coupons_cb($value, $user, $field_name)
 {
-    // createcoupon 
+    // createcoupon
     // registered
     // giftSelected
     // giftConfirmed
     // delivered
-    // cancelled 
+    // cancelled
     $new_coupon_status = array_key_exists('coupon_status', $value) ? $value['coupon_status'] : null;
     $new_vehicle_id = array_key_exists('vehicle_id', $value) ? $value['vehicle_id'] : null;
     $new_is_confirmed = array_key_exists('is_confirmed', $value) ? $value['is_confirmed'] : null;
     $new_date_updated = date('Y-m-d H:i:s');
-    
+
     $old_coupon_code = $value['coupon_code'];
     $new_coupon_code = '';
     $coupon_type = '';
@@ -968,7 +969,7 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
         if ($delim) {
             $coupon_type = substr($old_coupon_code, $delim+1);
         }
-        
+
         $email = $user->data->user_email;
         $new_coupon_code = wcg_generate_coupon_for_user($email, $user->ID);
         // if status not specified when creating coupon,
@@ -998,8 +999,8 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
         // check if we're setting 'is_confirmed' to true AND there was already an order
         // if so, need to update the status and trigger the notification emails.
         if (
-            $new_is_confirmed == true && 
-            $row_data['coupon_status'] == 'giftSelected' && 
+            $new_is_confirmed == true &&
+            $row_data['coupon_status'] == 'giftSelected' &&
             !empty($row_data['order_id'])
         ) {
             $row['coupon_status'] = 'giftConfirmed';
@@ -1008,9 +1009,9 @@ function wcg_update_user_coupons_cb($value, $user, $field_name)
 
         update_row('coupons', $row_number, $row, 'user_'.$user->ID);
 
-        // Handle coupon cancellation. 
+        // Handle coupon cancellation.
         if (strtolower($new_coupon_status) == 'cancelled' || strtolower($new_coupon_status) == 'canceled') {
-            
+
             if ($row_data['order_id'] != '') {
                 // Cancel, when coupon has not yet been used -- no Order.
                 $order = new WC_Order($row_data['order_id']);
@@ -1035,7 +1036,7 @@ function wcg_update_usermeta_cb($value, $user, $field_name)
 
 
 if (class_exists('ACF')){
-    
+
     // Save ACF fields automatically
     add_filter('acf/settings/save_json', function() {
         return dirname(__FILE__) . '/acf-json';
@@ -1043,8 +1044,8 @@ if (class_exists('ACF')){
 
     // Load ACF fields automatically
     add_filter('acf/settings/load_json', function($paths){
-        $paths[] = dirname(__FILE__). '/acf-json'; 
-        return $paths;    
+        $paths[] = dirname(__FILE__). '/acf-json';
+        return $paths;
     });
 }
 
@@ -1061,11 +1062,11 @@ function wcg_record_product_page_visit()
 
     // If user views a product page, record the visit.
     if (is_product()){
-        // Only record the visit for users that have a 
-        // cookie with a coupon code. 
+        // Only record the visit for users that have a
+        // cookie with a coupon code.
         $user_id = wcg_get_customer_id_by_coupon_code();
         if ($user_id > 0){
-            
+
             $row = array(
                 'product_id'    => $post->ID,
                 'product_name'  => $post->post_title,
@@ -1087,11 +1088,11 @@ function wcg_populate_checkout_fields($input, $key)
     // TODO skip over this if coupon is generic
     $user_id = wcg_get_customer_id_by_coupon_code();
     $user_key = 'user_' . $user_id;
-    
+
     switch ($key) :
 		case 'billing_first_name':
             return get_user_meta($user_id, 'first_name', true);
-            break;            
+            break;
         case 'billing_last_name':
             return get_user_meta($user_id, 'last_name', true);
             break;
@@ -1155,14 +1156,14 @@ function wcg_get_customer_id_by_coupon_code($coupon_code = null)
 }
 
 
-// Create an ACF Pro Options page 
+// Create an ACF Pro Options page
 if(function_exists('acf_add_options_page'))
 {
 	acf_add_options_page();
 }
 
 
-// Increase the APIs default maximum "per_page" amount. 
+// Increase the APIs default maximum "per_page" amount.
 // Originally, "per_page" needed to be between 1 and 100
 // Also, limit results only to Subscribers
 add_filter('rest_user_query', 'wcg_change_user_query', 2, 10);
@@ -1170,14 +1171,14 @@ add_filter('rest_user_query', 'wcg_change_user_query', 2, 10);
 function wcg_change_user_query($prepared_args, $request)
 {
     // check for our custom per page variable
-    $custom_num = $request->get_param('custom_per_page'); 
+    $custom_num = $request->get_param('custom_per_page');
     if ($custom_num !== null) {
         $prepared_args['number'] = $custom_num;
     }
 
     // exclude admins from being returned
     $prepared_args['role'] = 'Subscriber';
-    
+
     return $prepared_args;
 }
 
@@ -1225,20 +1226,20 @@ function wcg_trigger_confirmed_email($order_id)
 
 
 // Hook into the save_post function looking for posts with
-// "delivery-notification" category. These are shipping/delivery emails 
-// coming from Shipstation. 
+// "delivery-notification" category. These are shipping/delivery emails
+// coming from Shipstation.
 // Parse these posts for the desired data and save to the appropriate coupon.
 add_action('save_post', 'wcg_parse_shipstation_email_posts', 11, 3);
 
-function wcg_parse_shipstation_email_posts($post_id, $post, $update) 
-{    
+function wcg_parse_shipstation_email_posts($post_id, $post, $update)
+{
     if (!in_category('delivery-notification', $post)) {
         return;
-    } 
-    
-    $content = $post->post_content;    
-    
-    // Most recently used 
+    }
+
+    $content = $post->post_content;
+
+    // Most recently used
     // $strip_characters = array(
     //     "\r\n", "\r", "\n", "\t", "&nbsp;", " ", "\\u00a0", "\0", "\x0B"
     // );
@@ -1247,7 +1248,7 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
     // );
     // $stripped_content = strtolower(strip_tags($post->post_content));
     // $stripped_content = preg_replace("/[^a-zA-Z0-9]/", "", $stripped_content);
-        
+
     $coupon_status = null;
     $order_num = null;
     $tracking_num = null;
@@ -1263,7 +1264,7 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
     } elseif (preg_match($shipped_regex, $content)) {
         $coupon_status = 'shipped';
     }
-    
+
     // parse for order number
     $order_num_regex = '/<span[^>]*id=[\'|\"]order_number[\'|\"][^>]*>[\s]*([^<]+)[\s]*<\/span>/';
     if (preg_match($order_num_regex, $content, $match)) {
@@ -1272,19 +1273,19 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
         // Missing order number means we cannot process this Email Post.
         return;
     }
-    
+
     // parse for tracking number
     $tracking_num_regex = '/<span[^>]*id=[\'|\"]tracking_num[\'|\"][^>]*>[\s]*([^<]+)[\s]*<\/span>/';
     if (preg_match($tracking_num_regex, $content, $match)) {
         $tracking_num = trim($match[1]);
     }
-    
+
     // parse for carrier
     $carrier_regex = '/<span[^>]*id=[\'|"]carrier_name[\'|"][^>]*>[\s]*([^<]+)[\s]*<\/span>/';
     if (preg_match($carrier_regex, $content, $match)) {
         $carrier = trim($match[1]);
     }
-    
+
     // parse for tracking link
     $tracking_link_regex = '/<a[^>]*id=[\'|\"]tracking_link[\'|\"][^>]*href=[\'|\"][\s]*([^\'\"]+)[\s]*[\'|\"][^>]*>/';
     $tracking_link_regex_alt = '/<a[^>]*href=[\'|\"][\s]*([^\'\"]+)[\s]*[\'|\"][^>]*id=[\'|\"]tracking_link[\'|\"][^>]*>/';
@@ -1293,7 +1294,7 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
     } elseif (preg_match($tracking_link_regex_alt, $content, $match)) {
         $tracking_link = trim($match[1]);
     }
-    
+
     // get the wc order
     $order = wc_get_order($order_num);
 
@@ -1336,28 +1337,28 @@ function wcg_parse_shipstation_email_posts($post_id, $post, $update)
 
 
 // Disable Ajax Call from WooCommerce Checkout
-add_action( 'wp_enqueue_scripts', 'wcg_dequeue_woocommerce_cart_fragments', 11); 
-function wcg_dequeue_woocommerce_cart_fragments() { 
-    wp_dequeue_script('wc-cart-fragments'); 
-} 
+add_action( 'wp_enqueue_scripts', 'wcg_dequeue_woocommerce_cart_fragments', 11);
+function wcg_dequeue_woocommerce_cart_fragments() {
+    wp_dequeue_script('wc-cart-fragments');
+}
 
 
 /**
  * Filter the standard update endpoint for products.
- * so that only specific fields can be updated. 
+ * so that only specific fields can be updated.
  */
-add_filter( "woocommerce_rest_pre_insert_product_object", 'wcg_filter_rest_product_fields', 1, 2 ); 
-function wcg_filter_rest_product_fields( $product, $request ) 
-{ 
-    $fields_ok_to_change = array('regular_price'); 
-    
+add_filter( "woocommerce_rest_pre_insert_product_object", 'wcg_filter_rest_product_fields', 1, 2 );
+function wcg_filter_rest_product_fields( $product, $request )
+{
+    $fields_ok_to_change = array('regular_price');
+
     // get original product data
     $original_product = wc_get_product($product->id);
     $original_data = $original_product->get_data();
-    
+
     // get the scheduled changes
     $changes = $product->get_changes();
-    $mychanges = array(); 
+    $mychanges = array();
 
     foreach($changes as $key=>$val) {
         if (
@@ -1369,12 +1370,12 @@ function wcg_filter_rest_product_fields( $product, $request )
     }
 
     $product->set_props($mychanges);
-    return $product; 
-}; 
+    return $product;
+};
 
 // Add Coupon Type/Category to body classes
 add_filter( 'body_class', 'wcg_add_custom_body_classes');
-function wcg_add_custom_body_classes( $classes ) 
+function wcg_add_custom_body_classes( $classes )
 {
     global $post;
     global $current_user;
@@ -1382,7 +1383,7 @@ function wcg_add_custom_body_classes( $classes )
     // add coupon category class
     $cat = isset($_COOKIE[WCG_REDIRECT_COOKIE]) ? $_COOKIE[WCG_REDIRECT_COOKIE] : 'none';
     $classes[] = "coupon-category-$cat";
-    
+
     // add to single product
     if (class_exists('WC_Account_Funds') && is_product() && $current_user->ID > 0) {
         $product = wc_get_product($post->ID);
@@ -1393,12 +1394,12 @@ function wcg_add_custom_body_classes( $classes )
             $classes[] = "insufficient-account-funds";
         }
     }
-    
+
     return $classes;
 }
 
 add_filter( 'post_class', 'wcg_add_product_loop_classes', 10, 3 ); //woocommerce use priority 20, so if you want to do something after they finish be more lazy
-function wcg_add_product_loop_classes( $classes, $class, $post_id ) { 
+function wcg_add_product_loop_classes( $classes, $class, $post_id ) {
     global $current_user;
 
     if ( 'product' == get_post_type() ) {
@@ -1418,11 +1419,11 @@ function wcg_add_product_loop_classes( $classes, $class, $post_id ) {
 // Generates coupon codes for users during import.
 // Must supply field "coupon_code" with "createcoupon" or "createcoupone|{coupontype}" to work properly.
 add_action( 'post_acui_import_single_user', 'wcg_generate_coupons_after_user_import', 1, 4 );
-function wcg_generate_coupons_after_user_import( $headers, $data, $user_id, $role ) { 
+function wcg_generate_coupons_after_user_import( $headers, $data, $user_id, $role ) {
 
     $coupon_code = get_field('coupon_code', "user_$user_id");
     if (!$coupon_code) return;
-    
+
     if (strpos($coupon_code, 'createcoupon') === 0) { // create a new coupon
         $user_data = get_userdata($user_id);
         $user_email = $user_data->user_email;
@@ -1433,25 +1434,25 @@ function wcg_generate_coupons_after_user_import( $headers, $data, $user_id, $rol
         if ($delim) {
             $coupon_type = substr($coupon_code, $delim+1);
         }
-        
+
         $new_coupon_code = wcg_generate_coupon_for_user($user_email, $user_id);
-        
+
         $row = array(
             'coupon_code'       => $new_coupon_code,
             'date_last_updated' => $date_created,
             'type'              => $coupon_type
         );
-        
+
         add_row('coupons', $row, "user_$user_id");
     }
 }
 
-// Autoselect Account Funds 
-function wcg_auto_select_account_funds( $wccm_autocreate_account ) { 
+// Autoselect Account Funds
+function wcg_auto_select_account_funds( $wccm_autocreate_account ) {
     if (class_exists('WC_Account_Funds')) {
         WC()->session->set( 'use-account-funds', true );
     }
-};          
+};
 add_action( 'woocommerce_before_checkout_form', 'wcg_auto_select_account_funds', 10, 1 );
 
 
@@ -1461,20 +1462,20 @@ add_action( 'woocommerce_before_checkout_form', 'wcg_auto_select_account_funds',
 // @message - Body content (can be HTML)
 function wcg_send_email_woocommerce_style($email, $subject, $heading, $message) {
     // uses the default WC headers
-    
+
     // Get woocommerce mailer from instance
     $mailer = WC()->mailer();
-  
+
     // Wrap message using woocommerce html email template
     $wrapped_message = $mailer->wrap_message($heading, $message);
-  
+
     // Create new WC_Email instance
     $wc_email = new WC_Email;
     $headers = $wc_email->get_headers();
-  
+
     // Style the wrapped message with woocommerce inline styles
     $html_message = $wc_email->style_inline($wrapped_message);
-  
+
     // Send the email using wordpress mail function
     wp_mail( $email, $subject, $html_message, $headers);
   }
@@ -1498,8 +1499,8 @@ function wcg_shipstation_custom_field_3() {
 
 
 // Hijack the faux Order meta field defined about to return a meta value on the Coupon.
-// If multiple coupons are used on an Order if uses the first one where the 'sales_rep' field 
-// is defined. 
+// If multiple coupons are used on an Order if uses the first one where the 'sales_rep' field
+// is defined.
 add_filter( 'get_post_metadata', 'wcg_handle_shipstation_custom_fields', 20, 4 );
 function wcg_handle_shipstation_custom_fields( $check, $object_id, $meta_key, $single ) {
   if( 'shipstationcustomfield2' == $meta_key ) {
@@ -1509,7 +1510,7 @@ function wcg_handle_shipstation_custom_fields( $check, $object_id, $meta_key, $s
     foreach($coupons as $code) {
         $coupon = new WC_Coupon($code);
         $sales_rep = get_field('sales_rep', $coupon->id);
-        if ($sales_rep != '') { return $sales_rep; } 
+        if ($sales_rep != '') { return $sales_rep; }
     }
   } elseif( 'shipstationcustomfield3' == $meta_key ) {
     $order = new WC_Order($object_id);
@@ -1520,9 +1521,9 @@ function wcg_handle_shipstation_custom_fields( $check, $object_id, $meta_key, $s
         $carrier = get_field('carrier', $coupon->id);
         $carrier_num = get_field('carrier_acct_num', $coupon->id);
         $carrier_zip = get_field('carrier_acct_billing_zip', $coupon->id);
-        if ($carrier || $carrier_num || $carrier_zip) { 
-            return $carrier . '|' . $carrier_num . '|' . $carrier_zip; 
-        } 
+        if ($carrier || $carrier_num || $carrier_zip) {
+            return $carrier . '|' . $carrier_num . '|' . $carrier_zip;
+        }
     }
   }
   return $check;
