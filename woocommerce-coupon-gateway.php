@@ -137,6 +137,27 @@ function wcg_process_coupon_code_url()
     // set coupon cookie?
     if (!isset($_COOKIE[$coupon_cookie]) || $_COOKIE[$coupon_cookie] != $coupon_code) {
         setcookie($coupon_cookie, $coupon_code, $expire);
+
+        // track the coupon has been used to login - timestamp and IP address
+        $date = date('d/m/Y');
+        $ip = '';
+
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            //ip from share internet
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            //ip pass from proxy
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+
+        $row = array(
+            'date' => $date,
+            'ip_address' => $ip
+        );
+        add_row('authentications', $row, $coupon->id);
+
     }
     // set redirect cookie?
     if (!isset($_COOKIE[$redirect_cookie]) || $_COOKIE[$redirect_cookie] != $redirect_slug) {
